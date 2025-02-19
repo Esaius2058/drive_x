@@ -1,0 +1,26 @@
+{
+  "name": "file_uploader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express-session": "^1.18.1",
+    "@types/multer": "^1.4.12",
+    "@types/passport": "^1.0.17",
+    "@types/passport-local": "^1.0.38",
+    "ejs": "^3.1.10",
+    "multer": "^1.4.5-lts.1",
+    "passport": "^0.7.0",
+    "prisma": "^6.3.1"
+  },
+  "dependencies": {
+    "@quixo3/prisma-session-store": "^3.1.13"
+  }
+}
