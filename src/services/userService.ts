@@ -4,13 +4,20 @@ import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+export interface CustomUser {
+  id?: number;
+  name?: string;
+  email: string;
+  passwordHash?: string;
+  users?: CustomUser[];
+}
 
-export const createUser = async (
+export const handleCreateUser = async (
   name: string,
   email: string,
   passwordHash: string
-) => {
-  return await prisma.user.create({
+):Promise<void> => {
+  await prisma.user.create({
     data: {
       name: name,
       email: email,
@@ -21,7 +28,7 @@ export const createUser = async (
   });
 };
 
-export const updateUser = async (name: string, userEmail: string) => {
+export const handleUpdateEmail = async (name: string | undefined, userEmail: string) => {
   return await prisma.user.update({
     where: {
       email: userEmail,
@@ -32,7 +39,7 @@ export const updateUser = async (name: string, userEmail: string) => {
   });
 };
 
-export const updatePassword = async (email: string, newPassword: string) => {
+export const handleUpdatePassword = async (email: string | undefined, newPassword: string) => {
   return await prisma.user.update({
     where: {
       email: email,
@@ -81,10 +88,13 @@ passport.deserializeUser(async (id: number, done) => {
     if (!user) return done(null, false);
     done(null, {
       id: user.id,
-      fullname: user.name,
-      password: user.passwordHash,
+      name: user.name,
+      email: user.email,
+      passwordHash: user.passwordHash
     });
   } catch (error: unknown) {
     done(error);
   }
 });
+
+export default passport;
