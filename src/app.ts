@@ -4,6 +4,7 @@ import session from "express-session";
 import { PrismaSessionStore } from "@quixo3/prisma-session-store";
 import { PrismaClient } from "@prisma/client";
 import passport from "passport";
+import router from "./routers/uploadRouters";
 import path from "path";
 dotenv.config();
 
@@ -35,6 +36,8 @@ app.use(
 app.use(passport.initialize());
 //Middleware that integrates Passport with Express sessions.
 app.use(passport.session());
+//Initialize the router directory
+app.use("/", router);
 // Directory for static files
 app.use(express.static(path.join(__dirname, "public")));
 
