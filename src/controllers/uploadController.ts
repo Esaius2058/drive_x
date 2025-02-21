@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, json } from "express";
 import passport from "passport";
-import { handleCreateUser, handleUpdatePassword, handleUpdateUser } from "../services/userService";
+import { handleCreateUser, handleUpdatePassword, handleUpdateEmail } from "../services/userService";
 import bcrypt from "bcryptjs";
 
 interface LoginRequestBody {
@@ -39,14 +39,14 @@ export const uploadMultipleFields = (req: Request, res: Response) => {
   return res.status(200).json({ files: req.files });
 };
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response):Promise<void> => {
   const fullname = req.body.firstname + " " + req.body.lastname;
   const email = req.body.email;
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
   try {
     const newUser = await handleCreateUser(fullname, email, hashedPassword);
-    return res.status(201).json({
+    res.status(201).json({
       message: `Welcome ${req.body.firstname}`,
       user: newUser,
     });
@@ -105,7 +105,7 @@ export const ensureAuthenticated = (req: any, res: any, next: any) => {
 export const updateEmail = async (req: Request, res: Response) => {
   const newEmail = req.body.email;
   try {
-    const updatedUser = await handleUpdateUser(req.user?.name, newEmail);
+    const updatedUser = await handleUpdateEmail(req.user?.name, newEmail);
     return res.status(200).json({
       message: `Updated ${req.user?.name}'s email`,
       update: updatedUser.email,
