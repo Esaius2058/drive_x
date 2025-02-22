@@ -6,12 +6,13 @@
     <title><%= title %></title>
 </head>
 <body>
-    <form action="" method="post">
+    <form action="/log-in" method="post">
         <label for="email">Email: </label>
         <input type="email" name="email" id="email">
         <label for="password">Password: </label>
         <input type="password" name="password" id="password">
         <button type="submit">Log In</button>
     </form>
+    <p>Not yet registered? <button onclick="location.href='/sign-up'">Sign Up</button></p>
 </body>
 </html>
