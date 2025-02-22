@@ -24,6 +24,7 @@
     "prisma": "^6.3.1"
   },
   "dependencies": {
-    "@quixo3/prisma-session-store": "^3.1.13"
+    "@quixo3/prisma-session-store": "^3.1.13",
+    "bcryptjs": "^3.0.2"
   }
 }
