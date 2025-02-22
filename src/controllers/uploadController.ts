@@ -1,37 +1,76 @@
 import { Request, Response, NextFunction, json } from "express";
-import passport from "passport";
-import { handleCreateUser, handleUpdatePassword, handleUpdateEmail } from "../services/userService";
+import passport from "../services/userService";
+import {
+  handleCreateUser,
+  handleUpdatePassword,
+  handleUpdateName,
+  handleCreateFolder,
+  handleGetFolders,
+  handleGetFolderDetails,
+  handleDeleteFolder,
+  handleUploadSingleFile,
+  handleUploadMultipleFiles,
+} from "../services/userService";
 import bcrypt from "bcryptjs";
+import path from "path";
+import { request } from "http";
 
 interface LoginRequestBody {
   email: string;
   password: string;
 }
 
-export const uploadSingleFile = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getProfile = async (req: Request, res: Response) => {
+  const userId = Number(req.user?.id);
+  const folders = await handleGetFolders(userId);
+  res.render("profile", {title: `${req.user?.name}`, folders});
+};
+
+export const uploadSingleFile = async (req: Request, res: Response) => {
   if (!req.file) {
     res.status(400).json({ message: "No file uploaded" });
     return;
   }
-  res.status(200).json({
-    message: "File Uploaded Successfully!!",
-    filename: req.file.filename,
-    file: req.file,
-  });
+
+  try {
+    const filePath = path.join("uploads", req.file.filename);
+    const { folderId, userId, filename } = req.body;
+
+    await handleUploadSingleFile(
+      filename,
+      Number(folderId),
+      req.file.size,
+      Number(userId),
+      path.extname(req.file.filename),
+      filePath
+    );
+
+    res.status(201).json({ message: "File uploaded successfully", filePath });
+  } catch (err: any) {
+    console.error("Upload error:", err);
+    res.status(500).json({ message: "Error uploading file" });
+  }
 };
 
 export const uploadMultipleFiles = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  if (!req.files) {
+  if (!req.files || req.files.length === 0) {
     res.status(400).json({ message: "No files uploaded" });
-    return;
   }
-  res.status(200).json({ files: req.files });
+
+  try {
+    const { folderId, userId } = req.body;
+    const files = req.files as Express.Multer.File[];
+
+    await handleUploadMultipleFiles(files, Number(folderId), Number(userId));
+
+    res.status(201).json({ message: "Files uploaded successfully" });
+  } catch (err: any) {
+    console.error("Upload error:", err);
+    res.status(500).json({ message: "Error uploading files" });
+  }
 };
 
 export const uploadMultipleFields = (req: Request, res: Response) => {
@@ -39,7 +78,10 @@ export const uploadMultipleFields = (req: Request, res: Response) => {
   return res.status(200).json({ files: req.files });
 };
 
-export const createUser = async (req: Request, res: Response):Promise<void> => {
+export const createUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const fullname = req.body.firstname + " " + req.body.lastname;
   const email = req.body.email;
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -50,7 +92,7 @@ export const createUser = async (req: Request, res: Response):Promise<void> => {
       message: `Welcome ${req.body.firstname}`,
       user: newUser,
     });
-  } catch (err: unknown) {
+  } catch (err: any) {
     console.error("Internal server error: ", err);
     res.status(500).json("Internal server error");
   }
@@ -61,7 +103,7 @@ export const loginUser = (
   res: Response,
   next: NextFunction
 ) => {
-  passport.authenticate("local", (err: unknown, user: any, info: any) => {
+  return passport.authenticate("local", (err: unknown, user: any, info: any) => {
     if (err) {
       return next(err);
     }
@@ -75,7 +117,8 @@ export const loginUser = (
         return next(err);
       }
 
-      return res.redirect("/profile");
+      console.log("User logged in: ", req.user);
+      return getProfile(req, res);
     });
   })(req, res, next);
 };
@@ -105,30 +148,98 @@ export const ensureAuthenticated = (req: any, res: any, next: any) => {
 export const updateEmail = async (req: Request, res: Response) => {
   const newEmail = req.body.email;
   try {
-    const updatedUser = await handleUpdateEmail(req.user?.name, newEmail);
-    return res.status(200).json({
-      message: `Updated ${req.user?.name}'s email`,
-      update: updatedUser.email,
-    });
-  } catch (err: unknown) {
+    const updatedUser = await handleUpdateName(req.user?.name, newEmail);
+    updatedUser
+      ? res.status(200).json({
+          message: `Updated successful`,
+          update: updatedUser.name,
+        })
+      : res.status(400).json("User update failed or user not found.");
+  } catch (err: any) {
     console.error("Internal server error: ", err);
-    res.status(500).json("Internal server error");
+    res.status(500).json({ error: err.message });
   }
 };
 
 export const updatePassword = async (req: Request, res: Response) => {
-  const email = req.user?.email
+  const email = req.user?.email;
   const newPassword = req.body.newpassword;
   const oldPassword = req.body.oldpassword;
-  const oldHashed = req.user?.passwordHash ? req.user?.passwordHash.toString() : "";
+  const oldHashed = req.user?.passwordHash
+    ? req.user?.passwordHash.toString()
+    : "";
 
-  try{
-    if(await bcrypt.compare(oldPassword, oldHashed)){
-      const updatedPassword = await handleUpdatePassword(email, newPassword);
-      return res.status(200).json({message: `Updated ${req.user?.name}'s password.`});
-    }
-  }catch(err: unknown){
+  try {
+    if (await bcrypt.compare(oldPassword, oldHashed)) {
+      await handleUpdatePassword(email, newPassword);
+      return res
+        .status(200)
+        .json({ message: `Updated ${req.user?.name}'s password.` });
+      }
+  } catch (err: any) {
     console.error("Internal server error: ", err);
-    res.status(500).json("Internal server error");
+    res.status(500).json({ error: err.message });
   }
-}
+};
+
+export const createFolder = async (req: Request, res: Response) => {
+  const { folder_name, parent_id } = req.body;
+  const userId = Number(req.user?.id);
+
+  try {
+    const folder = await handleCreateFolder(folder_name, parent_id, userId);
+    res
+      .status(201)
+      .json({ message: "Created folder successfully", folder: folder });
+  } catch (err: any) {
+    console.error("Internal server error: ", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getFolders = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userId = Number(req.user?.id);
+  try {
+    const folders = await handleGetFolders(userId);
+    res.render("profile", { title: "Your Folders", folders });
+  } catch (err: any) {
+    console.error("Internal server error: ", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getFolderDetails = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const folderDetails = await handleGetFolderDetails(Number(id));
+    if (!folderDetails) {
+      res.status(404).json({ message: "Folder not found" });
+    }
+
+    res
+      .status(200)
+      .json({ folder: folderDetails?.name, files: folderDetails?.file });
+  } catch (err: any) {
+    console.error("Internal server error: ", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteFolder = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    await handleDeleteFolder(Number(id));
+    res.status(200).json({ message: "Folder deleted successfully!" });
+  } catch (err: any) {
+    console.error("Internal server error: ", err);
+    res.status(500).json({ error: err.message });
+  }
+};
