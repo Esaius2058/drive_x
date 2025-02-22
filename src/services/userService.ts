@@ -7,51 +7,122 @@ const prisma = new PrismaClient();
 export interface CustomUser {
   id?: number;
   name?: string;
-  email: string;
+  email?: string;
   passwordHash?: string;
   users?: CustomUser[];
 }
+
+export const handleUploadSingleFile = async (
+  fileName: string,
+  folderId: number,
+  size: number,
+  userId: number,
+  fileType: string,
+  path: string
+) => {
+  try {
+    await prisma.file.create({
+      data: {
+        name: fileName,
+        size: size,
+        userId: userId,
+        fileType: fileType,
+        path: path,
+        folderId: folderId,
+      },
+    });
+  } catch (err: any) {
+    console.error("Error uploading file: ", err);
+  }
+};
+
+export const handleUploadMultipleFiles = async (
+  files: Express.Multer.File[],
+  folderId: number,
+  userId: number
+) => {
+  try{
+    const fileData = files.map((file) => ({
+      name: file.originalname, 
+      size: file.size, // File size in bytes
+      userId: userId, 
+      fileType: file.mimetype, // MIME type (e.g., "image/png")
+      path: file.path, 
+      folderId: folderId, 
+    }));
+
+    await prisma.file.createMany({data: fileData});
+  }catch(err: any){
+    console.error("Error uploading files:", err);
+  }
+};
 
 export const handleCreateUser = async (
   name: string,
   email: string,
   passwordHash: string
-):Promise<void> => {
-  await prisma.user.create({
-    data: {
-      name: name,
-      email: email,
-      passwordHash: passwordHash,
-      storageLimit: 1024,
-      usedStorage: 0,
-    },
-  });
+) => {
+  try {
+    return await prisma.user.create({
+      data: {
+        name: name,
+        email: email,
+        passwordHash: passwordHash,
+        storageLimit: 1024,
+        usedStorage: 0,
+      },
+    });
+  } catch (err: unknown) {
+    console.error("Error creating user: ", err);
+  }
 };
 
-export const handleUpdateEmail = async (name: string | undefined, userEmail: string) => {
-  return await prisma.user.update({
-    where: {
-      email: userEmail,
-    },
-    data: {
-      name: name,
-    },
-  });
+export const handleUpdateName = async (
+  name: string | undefined,
+  userEmail: string
+) => {
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!existingUser) {
+      console.log("User not found.");
+      return null;
+    }
+
+    return await prisma.user.update({
+      where: { email: userEmail },
+      data: { name: name },
+    });
+  } catch (err: unknown) {
+    console.error("Error updating email: ", err);
+    return null;
+  }
 };
 
-export const handleUpdatePassword = async (email: string | undefined, newPassword: string) => {
-  return await prisma.user.update({
-    where: {
-      email: email,
-    },
-    data: {
-      passwordHash: newPassword,
-    },
-  });
+export const handleUpdatePassword = async (
+  email: string | undefined,
+  newPassword: string
+) => {
+  try {
+    const updatedUser = await prisma.user.update({
+      where: {
+        email: email,
+      },
+      data: {
+        passwordHash: newPassword,
+      },
+    });
+    return updatedUser;
+  } catch (err: unknown) {
+    console.error("Error updating password: ", err);
+    return null;
+  }
 };
 
 passport.use(
-  new LocalStrategy(async (email, password, done) => {
+  new LocalStrategy({usernameField: "email"}, async (email, password, done) => {
     try {
       const user = await prisma.user.findUnique({
         where: {
@@ -74,7 +145,7 @@ passport.use(
 );
 
 passport.serializeUser((user: any, done) => {
-  done(null, user.user_id);
+  done(null, user.id);
 });
 
 passport.deserializeUser(async (id: number, done) => {
@@ -90,11 +161,70 @@ passport.deserializeUser(async (id: number, done) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      passwordHash: user.passwordHash
+      passwordHash: user.passwordHash,
     });
   } catch (error: unknown) {
     done(error);
   }
 });
+
+export const handleCreateFolder = async (
+  name: string,
+  parent_id: number,
+  user_id: number
+) => {
+  try {
+    return await prisma.folder.create({
+      data: {
+        name: name,
+        userId: user_id,
+        parentFolderId: parent_id,
+      },
+    });
+  } catch (err: unknown) {
+    console.error("Error creating folder: ", err);
+  }
+};
+
+export const handleGetFolders = async (id: number) => {
+  try {
+    return await prisma.folder.findMany({
+      where: {userId: id},
+      include: {
+        parentFolder: true,
+        subFolders: true,
+      },
+    });
+  } catch (err: any) {
+    console.error("Error getting folders: ", err);
+  }
+};
+
+export const handleGetFolderDetails = async (id: number) => {
+  try {
+    return await prisma.folder.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        file: true,
+      },
+    });
+  } catch (err: unknown) {
+    console.error("Error getting folder details: ", err);
+  }
+};
+
+export const handleDeleteFolder = async (id: number) => {
+  try {
+    await prisma.folder.delete({
+      where: {
+        id: id,
+      },
+    });
+  } catch (err: unknown) {
+    console.error("Error deleting folder: ", err);
+  }
+};
 
 export default passport;
