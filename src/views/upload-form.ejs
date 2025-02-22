@@ -6,38 +6,39 @@
     <title><%= title %></title>
   </head>
   <body>
-    
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <label for="fullname">Name</label>
+    <% if(user){ %>
+      <form action="/file/upload" method="post" enctype="multipart/form-data">
+        <label for="fullname">Name</label>
+        <br />
+        <label for="filename">File Name</label>
+        <br />
+        <input type="text" name="filename" id="filename" />
+        <br />
+        <input
+          type="file"
+          name="file-upload"
+          id="file-upload"
+          placeholder="Upload a single file..."
+        />
+        <input type="hidden" name="userId" id="userId" value=<%= user.id %>>
+        <input type="hidden" name="folderId" id="folderId" value="1">
+        <button type="submit">Upload File</button>
+      </form>
       <br />
-      <input type="text" name="firstname" id="firstname" />
-      <input type="text" name="lastname" id="lastname" />
-      <br />
-      <label for="filename">File Name</label>
-      <br />
-      <input type="text" name="filename" id="filename" />
-      <br />
-      <input
-        type="file"
-        name="file-upload"
-        id="file-upload"
-        placeholder="Upload a single file..."
-      />
-      <button type="submit">Upload File</button>
-    </form>
-    <br />
-    <form action="/upload-multiple" method="post" enctype="multipart/form-data">
-      <label for="filename">File Name</label>
-      <br />
-      <input type="text" name="filename" id="filename" />
-      <br />
-      <input
-        type="file"
-        name="files-upload"
-        id="files-upload"
-        placeholder="Upload multiple files..."
-      />
-      <button type="submit">Upload Files</button>
-    </form>
+      <form action="/files/upload" method="post" enctype="multipart/form-data">
+        <input type="text" name="filename" id="filename" />
+        <br />
+        <input
+          type="file"
+          name="files-upload"
+          id="files-upload"
+          placeholder="Upload multiple files..."
+          multiple
+        />
+        <input type="hidden" name="folderId" id="folderId" value="1">
+        <input type="hidden" name="userId" id="userId" value=<%= user.id %>>
+        <button type="submit">Upload Files</button>
+      </form>
+    <% } %>
   </body>
 </html>
