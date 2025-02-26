@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, json } from "express";
-import passport from "../services/userService";
+import passport, { handleDeleteFile } from "../services/userService";
 import {
   handleCreateUser,
   handleUpdatePassword,
@@ -10,10 +10,12 @@ import {
   handleDeleteFolder,
   handleUploadSingleFile,
   handleUploadMultipleFiles,
+  handleUpdateFile,
 } from "../services/userService";
 import bcrypt from "bcryptjs";
 import path from "path";
 import { request } from "http";
+import { error } from "console";
 
 interface LoginRequestBody {
   email: string;
@@ -23,7 +25,7 @@ interface LoginRequestBody {
 export const getProfile = async (req: Request, res: Response) => {
   const userId = Number(req.user?.id);
   const folders = await handleGetFolders(userId);
-  res.render("profile", {title: `${req.user?.name}`, folders});
+  res.render("profile", { title: `${req.user?.name}`, folders });
 };
 
 export const uploadSingleFile = async (req: Request, res: Response) => {
@@ -41,7 +43,7 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
       Number(folderId),
       req.file.size,
       Number(userId),
-      path.extname(req.file.filename),
+      path.extname(req.file.originalname),
       filePath
     );
 
@@ -64,9 +66,15 @@ export const uploadMultipleFiles = async (
     const { folderId, userId } = req.body;
     const files = req.files as Express.Multer.File[];
 
-    await handleUploadMultipleFiles(files, Number(folderId), Number(userId));
+    await handleUploadMultipleFiles(
+      files,
+      Number(folderId),
+      Number(userId)
+    );
 
-    res.status(201).json({ message: "Files uploaded successfully" });
+    res
+      .status(201)
+      .json({ message: "Files uploaded successfully", files: req.files });
   } catch (err: any) {
     console.error("Upload error:", err);
     res.status(500).json({ message: "Error uploading files" });
@@ -103,24 +111,27 @@ export const loginUser = (
   res: Response,
   next: NextFunction
 ) => {
-  return passport.authenticate("local", (err: unknown, user: any, info: any) => {
-    if (err) {
-      return next(err);
-    }
-
-    if (!user) {
-      return res.redirect("/log-in");
-    }
-
-    req.logIn(user, (err) => {
+  return passport.authenticate(
+    "local",
+    (err: unknown, user: any, info: any) => {
       if (err) {
         return next(err);
       }
 
-      console.log("User logged in: ", req.user);
-      return getProfile(req, res);
-    });
-  })(req, res, next);
+      if (!user) {
+        return res.redirect("/log-in");
+      }
+
+      req.logIn(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+
+        console.log("User logged in: ", req.user);
+        return getProfile(req, res);
+      });
+    }
+  )(req, res, next);
 };
 
 export const logoutUser = async (
@@ -175,7 +186,7 @@ export const updatePassword = async (req: Request, res: Response) => {
       return res
         .status(200)
         .json({ message: `Updated ${req.user?.name}'s password.` });
-      }
+    }
   } catch (err: any) {
     console.error("Internal server error: ", err);
     res.status(500).json({ error: err.message });
@@ -183,11 +194,15 @@ export const updatePassword = async (req: Request, res: Response) => {
 };
 
 export const createFolder = async (req: Request, res: Response) => {
-  const { folder_name, parent_id } = req.body;
+  const { foldername, parentid } = req.body;
   const userId = Number(req.user?.id);
 
   try {
-    const folder = await handleCreateFolder(folder_name, parent_id, userId);
+    const folder = await handleCreateFolder(
+      foldername,
+      Number(parentid),
+      userId
+    );
     res
       .status(201)
       .json({ message: "Created folder successfully", folder: folder });
@@ -231,6 +246,32 @@ export const getFolderDetails = async (
     res.status(500).json({ error: err.message });
   }
 };
+
+export const deleteFile = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try{
+    await handleDeleteFile(Number(id));
+    res.status(200).json({message: "File deleted successfully!"});
+  }catch(err: any){
+    console.error("Internal server error: ", err);
+    res.status(500).json({error: err.message});
+  }
+}
+
+export const getUpdateForm = async (req: Request, res: Response) => {}
+
+export const updateFile = async (req: Request, res: Response) => {
+  const {id} = req.params;
+  const {filename} = req.body;
+
+  try{
+    await handleUpdateFile(Number(id), filename);
+  }catch(err: any){
+    console.error("Internal server error: ", err);
+    res.status(500).json({error: err.message});
+  }
+}
 
 export const deleteFolder = async (req: Request, res: Response) => {
   const { id } = req.params;
