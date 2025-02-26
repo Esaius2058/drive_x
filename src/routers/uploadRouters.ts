@@ -1,4 +1,6 @@
 import { Router, Response, Request } from "express";
+import fs from "fs";
+import path from "path";
 import multer from "multer";
 import {
   uploadSingleFile,
@@ -11,13 +13,21 @@ import {
   getFolderDetails,
   getFolders,
   deleteFolder,
-  getProfile
+  getProfile,
+  deleteFile
 } from "../controllers/uploadController";
 
 const router = Router();
 
+const uploadDir = path.join(__dirname, "../uploads");
+// Ensure the uploads directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     const fileName = req.body.filename || file.originalname;
     cb(null, `${Date.now()}-${fileName}`);
@@ -44,6 +54,7 @@ router.get("/folders/new-folder", (req: Request, res: Response) => {
 router.get("/folders", getFolders);
 router.get("/folders/:id", getFolderDetails);
 router.post("/folders/delete/:id", deleteFolder);
+router.post("/files/delete/:id", deleteFile);
 router.post("/folders/new-folder", createFolder);
 router.post("/sign-up", createUser);
 router.post("/log-in", loginUser);
