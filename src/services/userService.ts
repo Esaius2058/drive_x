@@ -227,4 +227,31 @@ export const handleDeleteFolder = async (id: number) => {
   }
 };
 
+export const handleDeleteFile = async (id: number) => {
+  try{
+    await prisma.file.delete({
+      where: {
+        id: id,
+      }
+    });
+  } catch (err: unknown) {
+    console.error("Error deleting file: ", err);
+  }
+}
+
+export const handleUpdateFile = async (id: number, fileName: string) => {
+  try{
+    await prisma.file.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: fileName
+      }
+    });
+  }catch(err: unknown){
+    console.error("Error updating file: ");
+  }
+}
+
 export default passport;
