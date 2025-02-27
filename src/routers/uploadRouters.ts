@@ -14,7 +14,10 @@ import {
   getFolders,
   deleteFolder,
   getProfile,
-  deleteFile
+  deleteFile,
+  getUpdateForm,
+  updateFile,
+  getFile
 } from "../controllers/uploadController";
 
 const router = Router();
@@ -50,11 +53,11 @@ router.get("/profile", ensureAuthenticated, getProfile);
 // Folder Routes
 router.get("/folders/new-folder", (req: Request, res: Response) => {
   res.render("new-folder");
-});7
+});
 router.get("/folders", getFolders);
 router.get("/folders/:id", getFolderDetails);
+router.get("/folders/update/:id", getUpdateForm);
 router.post("/folders/delete/:id", deleteFolder);
-router.post("/files/delete/:id", deleteFile);
 router.post("/folders/new-folder", createFolder);
 router.post("/sign-up", createUser);
 router.post("/log-in", loginUser);
@@ -64,6 +67,10 @@ router.post("/log-out", logoutUser);
 router.get("/files/upload", ensureAuthenticated, (req: Request, res: Response) => {
   res.render("upload-form", { title: "Upload Form", user: req.user });
 });
+router.get("/file/update:id", getUpdateForm);
+router.get("/file/:id", getFile);
+router.post("/file/update:id", updateFile);
+router.post("/files/delete/:id", deleteFile);
 router.post("/file/upload", upload.single("file-upload"), uploadSingleFile);
 router.post(
   "/files/upload",
