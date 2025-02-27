@@ -168,6 +168,21 @@ passport.deserializeUser(async (id: number, done) => {
   }
 });
 
+export const handleGetFile = async (id: number) => {
+  try{
+    return await prisma.file.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        folder: true,
+      }
+    });
+  }catch(err: unknown){
+    console.error("Error getting file: ", err);
+  }
+}
+
 export const handleCreateFolder = async (
   name: string,
   parent_id: number,
