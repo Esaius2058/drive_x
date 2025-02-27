@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction, json } from "express";
-import passport, { handleDeleteFile } from "../services/userService";
+import passport, {
+  handleDeleteFile,
+  handleGetFile,
+} from "../services/userService";
 import {
   handleCreateUser,
   handleUpdatePassword,
@@ -14,8 +17,7 @@ import {
 } from "../services/userService";
 import bcrypt from "bcryptjs";
 import path from "path";
-import { request } from "http";
-import { error } from "console";
+import { title } from "process";
 
 interface LoginRequestBody {
   email: string;
@@ -66,11 +68,7 @@ export const uploadMultipleFiles = async (
     const { folderId, userId } = req.body;
     const files = req.files as Express.Multer.File[];
 
-    await handleUploadMultipleFiles(
-      files,
-      Number(folderId),
-      Number(userId)
-    );
+    await handleUploadMultipleFiles(files, Number(folderId), Number(userId));
 
     res
       .status(201)
@@ -250,28 +248,60 @@ export const getFolderDetails = async (
 export const deleteFile = async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  try{
+  try {
     await handleDeleteFile(Number(id));
-    res.status(200).json({message: "File deleted successfully!"});
-  }catch(err: any){
+    res.status(200).json({ message: "File deleted successfully!" });
+  } catch (err: any) {
     console.error("Internal server error: ", err);
-    res.status(500).json({error: err.message});
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
-export const getUpdateForm = async (req: Request, res: Response) => {}
+export const getUpdateForm = async (req: Request, res: Response) => {
+  if (req.baseUrl == "/file") {
+    const fileId = req.params;
+    const file = await handleGetFile(Number(fileId));
+    try {
+      res.render("update-file", { title: "File Update", file });
+    } catch (err: any) {
+      console.error("Internal server error: ", err);
+      res.status(500).json({ error: err.message });
+    }
+  }else{
+    const folderId = req.params;
+    const folder = await handleGetFolderDetails(Number(folderId));
+    try{
+      res.render("update-folder", {title: "Folder Update", folder});
+    }catch(err: any){
+      console.error("Internal server error: ", err);
+      res.status(500).json({ error: err.message });
+    }
+  }
+};
+
+export const getFile = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const file = await handleGetFile(Number(id));
+    res.status(200).json({ name: file?.name, folder: file?.folder });
+  } catch (err: any) {
+    console.error("Internal server error: ", err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
 export const updateFile = async (req: Request, res: Response) => {
-  const {id} = req.params;
-  const {filename} = req.body;
+  const { id } = req.params;
+  const { filename } = req.body;
 
-  try{
+  try {
     await handleUpdateFile(Number(id), filename);
-  }catch(err: any){
+  } catch (err: any) {
     console.error("Internal server error: ", err);
-    res.status(500).json({error: err.message});
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
 export const deleteFolder = async (req: Request, res: Response) => {
   const { id } = req.params;
