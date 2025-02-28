@@ -17,7 +17,9 @@ import {
   deleteFile,
   getUpdateForm,
   updateFile,
-  getFile
+  getFile,
+  uploadForm,
+  newFolderForm
 } from "../controllers/uploadController";
 
 const router = Router();
@@ -51,9 +53,7 @@ router.get("/sign-up", (req: Request, res: Response) => {
 router.get("/profile", ensureAuthenticated, getProfile);
 
 // Folder Routes
-router.get("/folders/new-folder", (req: Request, res: Response) => {
-  res.render("new-folder");
-});
+router.get("/folders/new-folder", newFolderForm);
 router.get("/folders", getFolders);
 router.get("/folders/:id", getFolderDetails);
 router.get("/folders/update/:id", getUpdateForm);
@@ -64,9 +64,7 @@ router.post("/log-in", loginUser);
 router.post("/log-out", logoutUser);
 
 //File Routes
-router.get("/files/upload", ensureAuthenticated, (req: Request, res: Response) => {
-  res.render("upload-form", { title: "Upload Form", user: req.user });
-});
+router.get("/files/upload", ensureAuthenticated, uploadForm);
 router.get("/file/update:id", getUpdateForm);
 router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
