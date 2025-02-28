@@ -41,18 +41,18 @@ export const handleUploadMultipleFiles = async (
   folderId: number,
   userId: number
 ) => {
-  try{
+  try {
     const fileData = files.map((file) => ({
-      name: file.originalname, 
+      name: file.originalname,
       size: file.size, // File size in bytes
-      userId: userId, 
+      userId: userId,
       fileType: file.mimetype, // MIME type (e.g., "image/png")
-      path: file.path, 
-      folderId: folderId, 
+      path: file.path,
+      folderId: folderId,
     }));
 
-    await prisma.file.createMany({data: fileData});
-  }catch(err: any){
+    await prisma.file.createMany({ data: fileData });
+  } catch (err: any) {
     console.error("Error uploading files:", err);
   }
 };
@@ -74,6 +74,22 @@ export const handleCreateUser = async (
     });
   } catch (err: unknown) {
     console.error("Error creating user: ", err);
+  }
+};
+
+export const handleGetUser = async (email: string) => {
+  try {
+    return await prisma.user.findUnique({
+      where: {
+        email: email
+      },
+      include: {
+        File: true,
+        Folder: true
+      }
+    });
+  } catch (err: any) {
+    console.error("Error getting user: ", err);
   }
 };
 
@@ -122,26 +138,29 @@ export const handleUpdatePassword = async (
 };
 
 passport.use(
-  new LocalStrategy({usernameField: "email"}, async (email, password, done) => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: {
-          email: email,
-        },
-      });
-      const match = await bcrypt.compare(password, user?.passwordHash || "");
+  new LocalStrategy(
+    { usernameField: "email" },
+    async (email, password, done) => {
+      try {
+        const user = await prisma.user.findUnique({
+          where: {
+            email: email,
+          },
+        });
+        const match = await bcrypt.compare(password, user?.passwordHash || "");
 
-      if (!user) {
-        return done(null, false, { message: "Incorrect username" });
+        if (!user) {
+          return done(null, false, { message: "Incorrect username" });
+        }
+        if (!match) {
+          return done(null, false, { message: "Incorrrect password" });
+        }
+        return done(null, user);
+      } catch (error: unknown) {
+        return done(error);
       }
-      if (!match) {
-        return done(null, false, { message: "Incorrrect password" });
-      }
-      return done(null, user);
-    } catch (error: unknown) {
-      return done(error);
     }
-  })
+  )
 );
 
 passport.serializeUser((user: any, done) => {
@@ -169,24 +188,24 @@ passport.deserializeUser(async (id: number, done) => {
 });
 
 export const handleGetFile = async (id: number) => {
-  try{
+  try {
     return await prisma.file.findUnique({
       where: {
         id,
       },
       include: {
         folder: true,
-      }
+      },
     });
-  }catch(err: unknown){
+  } catch (err: unknown) {
     console.error("Error getting file: ", err);
   }
-}
+};
 
 export const handleCreateFolder = async (
   name: string,
-  parent_id: number,
-  user_id: number
+  user_id: number,
+  parent_id?: number
 ) => {
   try {
     return await prisma.folder.create({
@@ -204,10 +223,11 @@ export const handleCreateFolder = async (
 export const handleGetFolders = async (id: number) => {
   try {
     return await prisma.folder.findMany({
-      where: {userId: id},
+      where: { userId: id },
       include: {
         parentFolder: true,
         subFolders: true,
+        file: true,
       },
     });
   } catch (err: any) {
@@ -243,30 +263,30 @@ export const handleDeleteFolder = async (id: number) => {
 };
 
 export const handleDeleteFile = async (id: number) => {
-  try{
+  try {
     await prisma.file.delete({
       where: {
         id: id,
-      }
+      },
     });
   } catch (err: unknown) {
     console.error("Error deleting file: ", err);
   }
-}
+};
 
 export const handleUpdateFile = async (id: number, fileName: string) => {
-  try{
+  try {
     await prisma.file.update({
       where: {
         id: id,
       },
       data: {
-        name: fileName
-      }
+        name: fileName,
+      },
     });
-  }catch(err: unknown){
+  } catch (err: unknown) {
     console.error("Error updating file: ");
   }
-}
+};
 
 export default passport;
