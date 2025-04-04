@@ -5,7 +5,7 @@ import multer from "multer";
 import {
   uploadSingleFile,
   uploadMultipleFiles,
-  ensureAuthenticated,
+  verifyJWT,
   createUser,
   loginUser,
   logoutUser,
@@ -19,7 +19,8 @@ import {
   updateFile,
   getFile,
   uploadForm,
-  newFolderForm
+  newFolderForm,
+  validateUser,
 } from "../controllers/uploadController";
 
 const router = Router();
@@ -50,7 +51,7 @@ router.get("/log-in", (req: Request, res: Response) => {
 router.get("/sign-up", (req: Request, res: Response) => {
     res.render("sign-up", { title: "DriveX SignUp"});
 });
-router.get("/profile", ensureAuthenticated, getProfile);
+router.get("/profile", verifyJWT, getProfile);
 
 // Folder Routes
 router.get("/folders/new-folder", newFolderForm);
@@ -59,13 +60,13 @@ router.get("/folders/:id", getFolderDetails);
 router.get("/folders/update/:id", getUpdateForm);
 router.post("/folders/delete/:id", deleteFolder);
 router.post("/folders/new-folder", createFolder);
-router.post("/sign-up", createUser);
+router.post("/sign-up", validateUser, createUser);
 router.post("/log-in", loginUser);
 router.post("/log-out", logoutUser);
 
 //File Routes
-router.get("/files/upload", ensureAuthenticated, uploadForm);
-router.get("/file/update:id", getUpdateForm);
+router.get("/files/upload", verifyJWT, uploadForm);
+router.get("/file/update:id", verifyJWT,getUpdateForm);
 router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
 router.post("/files/delete/:id", deleteFile);
