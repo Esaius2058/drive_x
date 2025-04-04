@@ -5,10 +5,10 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 export interface CustomUser {
-  id?: number;
+  id: string;
+  email: string;
   name?: string;
-  email?: string;
-  passwordHash?: string;
+  password_hash?: string;
   users?: CustomUser[];
 }
 
@@ -137,6 +137,7 @@ export const handleUpdatePassword = async (
   }
 };
 
+/*
 passport.use(
   new LocalStrategy(
     { usernameField: "email" },
@@ -185,7 +186,7 @@ passport.deserializeUser(async (id: number, done) => {
   } catch (error: unknown) {
     done(error);
   }
-});
+});*/
 
 export const handleGetFile = async (id: number) => {
   try {
