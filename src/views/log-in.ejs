@@ -6,13 +6,38 @@
     <title><%= title %></title>
 </head>
 <body>
-    <form action="/log-in" method="post">
+    <form action="/log-in" method="post" id="loginForm">
         <label for="email">Email: </label>
-        <input type="email" name="email" id="email">
+        <input type="email" name="email" id="email" required>
         <label for="password">Password: </label>
-        <input type="password" name="password" id="password">
+        <input type="password" name="password" id="password" required>
         <button type="submit">Log In</button>
     </form>
+    <script>
+        const loginUser = async (event) => {
+            event.preventDefault(); //stop the page from reloading
+
+            const formData = new formData(event.target);
+
+            const response = await fetch("/log-in", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const data = await response.json();
+            if(data.action === "loginUser"){
+                console.log("Handling login response.");
+                localStorage.setItem("token", data.token); //store JWT
+            }
+
+            window.location.href = "/profile";
+        }
+
+        document.querySelector("form").addEventListener("submit", loginUser);
+    </script>
     <p>Not yet registered? <button onclick="location.href='/sign-up'">Sign Up</button></p>
 </body>
 </html>
