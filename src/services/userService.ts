@@ -1,9 +1,8 @@
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+
 export interface CustomUser {
   id: string;
   email: string;
