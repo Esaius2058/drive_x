@@ -18,5 +18,5 @@ app.use("/", router);
 // Directory for static files
 app.use(express.static(path.join(__dirname, "public")));
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 app.listen(PORT, () => console.log(`App listening on port ${PORT}`));
