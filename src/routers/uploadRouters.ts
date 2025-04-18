@@ -5,23 +5,29 @@ import multer from "multer";
 import {
   uploadSingleFile,
   uploadMultipleFiles,
+  getUpdateForm,
+  uploadForm
+} from "../controllers/uploadController";
+import {
   verifyJWT,
+  validateUser,
   createUser,
+  getProfile,
   loginUser,
   logoutUser,
+} from "../controllers/userControllers";
+import {
   createFolder,
   getFolderDetails,
   getFolders,
-  deleteFolder,
-  getProfile,
-  deleteFile,
-  getUpdateForm,
+  newFolderForm,
+  deleteFolder
+} from "../controllers/folderControllers";
+import {
   updateFile,
   getFile,
-  uploadForm,
-  newFolderForm,
-  validateUser,
-} from "../controllers/uploadController";
+  deleteFile
+} from "../controllers/fileControllers";
 
 const router = Router();
 
@@ -49,7 +55,7 @@ router.get("/log-in", (req: Request, res: Response) => {
   res.render("log-in", { title: "DriveX Login" });
 });
 router.get("/sign-up", (req: Request, res: Response) => {
-    res.render("sign-up", { title: "DriveX SignUp"});
+  res.render("sign-up", { title: "DriveX SignUp" });
 });
 router.get("/profile", verifyJWT, getProfile);
 
@@ -61,12 +67,12 @@ router.get("/folders/update/:id", getUpdateForm);
 router.post("/folders/delete/:id", deleteFolder);
 router.post("/folders/new-folder", createFolder);
 router.post("/sign-up", validateUser, createUser);
-router.post("/log-in", loginUser);
+router.post("/log-in", validateUser, loginUser);
 router.post("/log-out", logoutUser);
 
 //File Routes
 router.get("/files/upload", verifyJWT, uploadForm);
-router.get("/file/update:id", verifyJWT,getUpdateForm);
+router.get("/file/update:id", verifyJWT, getUpdateForm);
 router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
 router.post("/files/delete/:id", deleteFile);
