@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
+    <title>
+        <%= title %>
+    </title>
 </head>
+
 <body>
     <form action="/log-in" method="post" id="loginForm">
         <label for="email">Email: </label>
@@ -17,27 +21,36 @@
         const loginUser = async (event) => {
             event.preventDefault(); //stop the page from reloading
 
-            const formData = new formData(event.target);
+            const formData = new FormData(event.target);
+            const email = formData.get("email");
+            const password = formData.get("password");
 
             const response = await fetch("/log-in", {
                 method: "POST",
-                body: formData,
                 headers: {
                     "Content-Type": "application/json"
-                }
+                },
+                //send the data to the server
+                body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
-            if(data.action === "loginUser"){
+            if (data.action === "loginUser") {
                 console.log("Handling login response.");
                 localStorage.setItem("token", data.token); //store JWT
             }
 
-            window.location.href = "/profile";
+            const token = localStorage.getItem("token");
+            const reponse2 = await fetch("/profile", {
+                headers: {
+                    "authorization": `Bearer ${token}`,
+                },
+            });
         }
 
         document.querySelector("form").addEventListener("submit", loginUser);
     </script>
     <p>Not yet registered? <button onclick="location.href='/sign-up'">Sign Up</button></p>
 </body>
+
 </html>
