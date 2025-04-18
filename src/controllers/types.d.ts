@@ -7,3 +7,5 @@ declare global {
     interface Request extends CustomRequest {}
   }
 }
+
+export { CustomRequest, CustomUser };
