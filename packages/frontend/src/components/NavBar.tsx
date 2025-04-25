@@ -2,19 +2,40 @@ import { Link } from "react-router-dom";
 
 const LandingNavBar = () => {
     return (
-        <nav className="navbar">
+        <nav className="navbar welcome-nav">
             <Link to={"/"} className="navbar-logo">
-                <img src="./cloud-white.svg" alt="cloud-icon" className="h-8 w-8 mr-2"/>
-                <h1>driveX</h1>
+                <img src="./cloud-white.svg" alt="cloud-icon" />
+                <h1 className="navbar-logo-header-1">drive X</h1>
             </Link>
             <div className="navbar-filler"></div>
             <div className="navbar-links">
-                <Link to="/">Features</Link>
+                <Link to="/#landing-features">Features</Link>
                 <Link to="/about">Docs</Link>
-                <Link to="/signup">Sign Up</Link>
+                <Link to="/auth/signup">Sign Up</Link>
             </div>
         </nav>
     );
 }
 
-export { LandingNavBar };
+const LandingNavBarMobile = () => {}
+
+const DashboardNavBar = () => {
+    return (
+        <nav className="navbar dashboard-nav">
+            <Link to={"/"} className="navbar-logo">
+                <img src="/cloud-solid.svg" alt="cloud-icon" />
+                <h1 className="navbar-logo-header-2">drive X</h1>
+            </Link>
+            <div className="navbar-search">
+                <img src="/search-solid.svg" alt="search-icon" className="navbar-icon"/>
+                <input type="text" placeholder="Search in Drive" className="search-input"/>
+                <img src="/xmark-solid.svg" alt="x-icon" className="navbar-icon"/>
+            </div>
+            <Link to="" className="navbar-user">
+                <img src="/user-solid.svg" alt="user-icon" className="navbar-icon"/>
+            </Link>
+        </nav>
+    );
+}
+
+export { LandingNavBar, LandingNavBarMobile, DashboardNavBar };
