@@ -1,5 +1,8 @@
 import App from "./App";
 import Landing from "./components/Landing";
+import AuthWrapper from "./components/AuthWrapper";
+import SignUp from "./components/SignUp";
+import Dashboard from "./components/Dashboard";
 
 const MainRoutes = () => {
     const routes = [{
@@ -8,7 +11,23 @@ const MainRoutes = () => {
         children: [{
             index: true,
             element: <Landing />
-        }]      
+        },
+        {
+            path: "auth",
+            element: <AuthWrapper />,
+            children: [{
+                path: "signup",
+                element: <SignUp />
+            },
+            {
+                path: "login",
+                element: <SignUp />
+            }]
+        },
+        {
+            path: "dashboard",
+            element: <Dashboard />,
+        }]
     }
     ];
 
