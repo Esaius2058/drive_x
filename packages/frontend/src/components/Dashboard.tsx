@@ -24,6 +24,9 @@ const Dashboard = () => {
     { name: "storage", label: "Storage", icon: "/cloud-solid.svg" },
     { name: "starred", label: "Starred", icon: "/starred-regular.svg" },
   ] as const;
+  const name = "";
+  const email = "";
+  const avatarUrl = "";
 
   type SidebarTab = (typeof sidebarTabs)[number]["name"];
 
@@ -215,7 +218,7 @@ const Dashboard = () => {
   };
   return (
     <div className="dashboard-page">
-      <DashboardNavBar />
+      <DashboardNavBar name={name} email={email} usedStoragePercentage={usedStoragePercentage} avatarUrl={avatarUrl}/>
       <div className="dashboard-body">
         <SideBar
           activeButton={activeButton}
