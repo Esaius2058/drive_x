@@ -1,4 +1,12 @@
 import { Link } from "react-router-dom";
+import { UserAvatar } from "./UserAvatar";
+
+interface DashboardNavbarProps {
+    name: string;
+    email: string;
+    usedStoragePercentage: number;
+    avatarUrl?: string;
+}
 
 const LandingNavBar = () => {
     return (
@@ -19,7 +27,7 @@ const LandingNavBar = () => {
 
 const LandingNavBarMobile = () => {}
 
-const DashboardNavBar = () => {
+const DashboardNavBar = ({name, email, avatarUrl, usedStoragePercentage}: DashboardNavbarProps) => {
     return (
         <nav className="navbar dashboard-nav">
             <Link to={"/"} className="navbar-logo">
@@ -31,9 +39,7 @@ const DashboardNavBar = () => {
                 <input type="text" placeholder="Search in Drive" className="search-input"/>
                 <img src="/xmark-solid.svg" alt="x-icon" className="navbar-icon"/>
             </div>
-            <Link to="" className="navbar-user">
-                <img src="/user-solid.svg" alt="user-icon" className="navbar-icon"/>
-            </Link>
+            <UserAvatar name={name} email={email} avatarUrl={avatarUrl} usedStoragePercentage={usedStoragePercentage}/>
         </nav>
     );
 }
