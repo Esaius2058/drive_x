@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import express, { Application } from "express";
 import router from "./routers/uploadRouters";
 import path from "path";
+import cors from "cors";
 dotenv.config();
 
 const app: Application = express();
@@ -13,6 +14,8 @@ app.set("views", path.resolve(__dirname, "../src", "views"));
 app.use(express.json());
 // Middleware to parse URL-encoded data (like form submissions)
 app.use(express.urlencoded({ extended: true }));
+// Middleware to enable CORS (Cross-Origin Resource Sharing)
+app.use(cors());
 //Initialize the router directory
 app.use("/api", router);
 // Directory for static files
