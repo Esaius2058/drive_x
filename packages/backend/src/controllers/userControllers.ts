@@ -62,7 +62,8 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export const createUser = async (
+export const 
+ = async (
   req: Request,
   res: Response
 ): Promise<void> => {
@@ -79,13 +80,19 @@ export const createUser = async (
 
   try {
     //const newUser = await handleCreateUser(fullname, email, hashedPassword);
-    const { data, error } = await supabase.auth.signUp({
+    const { data: newUser, error: newUserError } = await supabase.auth.signUp({
       email: email,
       password: req.body.password,
     });
+    console.log("Signup Email: ", email, "Password: ", req.body.password);
 
-    if (error) {
-      throw error;
+    const user = newUser.user;
+    if (!user) {
+      throw new Error("User not found, cannot sign token.");
+    }
+
+    if (newUserError) {
+      throw newUserError;
     }
 
     // Insert metadata into the database
@@ -93,27 +100,32 @@ export const createUser = async (
       .from("Users")
       .insert([{ name: fullname, email: email, password: hashedPassword }]);
 
-    if (dbError) {
-      console.error("Database error:", dbError);
+    //Create a new root folder
+    const { data: folder, error: folderError } = await supabase
+      .from("Folders")
+      .insert([{ name: "Parent Folder", user_id: user.id, parent_id: null }])
+      .select(); // <-lets TS infer the shape of 'data'
+
+    if (folderError || !folder || folder.length === 0) {
+      console.error("Failed to create folder:", folderError);
+      return;
+    }
+
+    if (dbError || folderError) {
+      dbError
+        ? console.error("Database error:", dbError)
+        : console.error("Database error:", folderError);
       res.status(500).json({ message: "Error saving file metadata" });
       return;
     }
 
-    if (error) {
-      console.error("Upload error:", error);
-      res.status(500).json({ message: "Error uploading file" });
-    }
-    const newUser = data.user;
-    if (!newUser) {
-      throw new Error("User not found, cannot sign token.");
-    }
     const token = jwt.sign(newUser, jwtSecret, { expiresIn: "2h" });
 
     res.json({
       message: `Welcome ${req.body.firstname}`,
-      user: newUser,
+      user,
       success: true,
-      token
+      token,
     });
   } catch (error: any) {
     console.error("Error signing in: ", error);
@@ -142,14 +154,12 @@ export const loginUser = async (
     const loggedUser = data.user;
     const token = jwt.sign(loggedUser, jwtSecret, { expiresIn: "2h" });
 
-    res.json({
-      action: "loginUser",
-      success: true,
-      message: "Login Successful",
-      token
+    res.status(200).json({
+      user: loggedUser,
+      token,
     });
   } catch (error) {
-    console.error("Error signing in: ", error);
+    console.error("Error logging in: ", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -178,9 +188,9 @@ export const updateEmail = async (req: Request, res: Response) => {
     const updatedUser = await handleUpdateName(req.user?.name, newEmail);
     updatedUser
       ? res.status(200).json({
-        message: `Updated successful`,
-        update: updatedUser.name,
-      })
+          message: `Updated successful`,
+          update: updatedUser.name,
+        })
       : res.status(400).json("User update failed or user not found.");
   } catch (err: any) {
     console.error("Internal server error: ", err);
@@ -189,7 +199,10 @@ export const updateEmail = async (req: Request, res: Response) => {
 };
 
 export const updatePassword = async (req: Request, res: Response) => {
-  const user = await supabase.from("Users").select("*").eq("email", req.user?.email);
+  const user = await supabase
+    .from("Users")
+    .select("*")
+    .eq("email", req.user?.email);
   const userData = user.data != null ? user.data[0] : "";
   const email = userData.email;
   const newPassword = req.body.newpassword;
@@ -198,7 +211,10 @@ export const updatePassword = async (req: Request, res: Response) => {
 
   try {
     if (await bcrypt.compare(oldPassword, oldHashed)) {
-      await supabase.from("Users").update({ password: await bcrypt.hash(newPassword, 10) }).eq("email", email);
+      await supabase
+        .from("Users")
+        .update({ password: await bcrypt.hash(newPassword, 10) })
+        .eq("email", email);
 
       return res
         .status(200)
@@ -210,10 +226,13 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
-export const fetchUserFiles = async (req: Request, res: Response, next: NextFunction) => {
+export const fetchUserFiles = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const userId = req.user?.id;
-  console.log("User in request: ", req.user);
-  console.log("User Id: ", userId);
+  console.log("User in request(fetchUserFiles): ", req.user);
 
   const { data, error } = await supabase
     .from("Files")
@@ -227,7 +246,11 @@ export const fetchUserFiles = async (req: Request, res: Response, next: NextFunc
   return data;
 };
 
-export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
+export const getProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ message: "Unauthorized: No token provided" });
@@ -253,18 +276,25 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
   try {
     //fetch the user files
     const fileItems = await fetchUserFiles(req, res, next);
-    //group the user files into their folders
-    const folders = fileItems.map((item: any) => ({
-      folderId: item.folder_id,
-      files: item.filter((f: any) => f.folder_id === item.folder_id),
-    })); //store the folder ids in an array
 
-    //fetch the folder name from the database
-    const folderIds = folders.map((folder: any) => folder.folderId);
+    // get unique folder IDs to avoid duplication (2n)
+    const uniqueFolderIds = [
+      ...new Set(
+        fileItems.map((item) => item.folder_id).filter((id) => id != null)
+      ),
+    ];
+
+    // map each folder ID to its files
+    const folders = uniqueFolderIds.map((folderId) => ({
+      folderId,
+      files: fileItems.filter((file) => file.folder_id === folderId),
+    }));
+
+    //fetch the user's folders
     const { data: folderData, error: folderError } = await supabase
       .from("Folders")
-      .select("name")
-      .in("id", folderIds);
+      .select("*")
+      .eq("user_id", req.user.id);
     if (folderError) {
       console.error("Error fetching folder names:", folderError);
       res.status(500).json({ message: "Error fetching folder names" });
@@ -275,16 +305,33 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
       acc[folder.id] = folder.name;
       return acc;
     }, {});
+
+    const folderIds = folderData.reduce((acc: any, folder:any) => {
+      acc[folder.id] = folder.id;
+      return acc;
+    }, {});
+    //get the files that do't have folder ids
+    const files = fileItems.map((file: any) => file.folder_id === null);
+
     //fetch the user's name from the database
-    const {data, error} = await supabase.from("Users").select("name").eq("email", req.user?.email);
+    const { data, error } = await supabase
+      .from("Users")
+      .select("*");
     if (error) {
-      console.error("Error fetching user name:", error);
+      console.error("Error fetchfolder.parent_folder_iding user name:", error);
       res.status(500).json({ message: "Error fetching user name" });
       return;
     }
 
-    const userName = data[0]?.name;
-    res.render("profile", { title: `${userName}`, folders, folderNames,user: req.user, userName });
+    const user = req.user;
+    const userNames = data.reduce((acc: any, user: any) => {
+      acc[user.id] = user.name;
+      return acc;
+    }, {});
+    console.log("Usernames ", userNames);
+    res
+      .status(200)
+      .json({ userNames, folders, folderIds,folderNames, files, user});
   } catch (error: any) {
     console.error("Error fetching profile:", error);
     res.status(500).json({ message: "Error fetching profile" });
