@@ -38,15 +38,18 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 
-const storage = multer.diskStorage({
+/* const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     const fileName = req.body.filename || file.originalname;
     cb(null, `${Date.now()}-${fileName}`);
   },
-});
+}); */
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {fileSize: 15 * 1024 * 1024} //15MB
+ });
 
 router.get("/", (req: Request, res: Response) => {
   res.render("welcome", { title: "DriveX" });
@@ -57,8 +60,14 @@ router.get("/log-in", (req: Request, res: Response) => {
 router.get("/sign-up", (req: Request, res: Response) => {
   res.render("sign-up", { title: "DriveX SignUp" });
 });
-router.get("/profile", verifyJWT, getProfile);
 
+router.post("/sign-up", createUser);
+router.post("/log-in", loginUser);
+router.post("/log-out", logoutUser);
+
+router.use(verifyJWT);
+
+router.get("/profile", getProfile);
 // Folder Routes
 router.get("/folders/new-folder", newFolderForm);
 router.get("/folders", getFolders);
@@ -66,13 +75,10 @@ router.get("/folders/:id", getFolderDetails);
 router.get("/folders/update/:id", getUpdateForm);
 router.post("/folders/delete/:id", deleteFolder);
 router.post("/folders/new-folder", createFolder);
-router.post("/sign-up", validateUser, createUser);
-router.post("/log-in", validateUser, loginUser);
-router.post("/log-out", logoutUser);
 
 //File Routes
-router.get("/files/upload", verifyJWT, uploadForm);
-router.get("/file/update:id", verifyJWT, getUpdateForm);
+router.get("/files/upload", uploadForm);
+router.get("/file/update:id", getUpdateForm);
 router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
 router.post("/files/delete/:id", deleteFile);
