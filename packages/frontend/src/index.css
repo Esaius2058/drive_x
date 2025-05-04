@@ -323,7 +323,7 @@ input {
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
-  background-color: var(--black);
+  background-color: var(--navy);
   gap: 20px;
   padding: 20px;
 }
@@ -342,6 +342,16 @@ input {
 .auth-form img {
   width: 25px;
   height: 25px;
+}
+.cancel-btn{
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  padding: 0px;
+}
+.cancel-btn:hover {
+  background-color: var(--light-gray);
+  color: var(--black);
 }
 .auth-div {
   display: flex;
