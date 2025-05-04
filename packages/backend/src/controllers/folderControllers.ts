@@ -22,12 +22,13 @@ export const newFolderForm = async (req: Request, res: Response) => {
   res.render("new-folder", { title: "New Folder", folders });
 };
 
-export const createFolder = async (req: Request, res: Response) => {
+export const createFolder = async (req: Request, res: Response): Promise<void> => {
   try {
     const { foldername, parentid } = req.body;
     const user = req.user;
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User not found" });
+      return;
     }
 
     const userId = user.id;
@@ -39,22 +40,29 @@ export const createFolder = async (req: Request, res: Response) => {
 
     if (newFolderError) throw newFolderError;
 
-    return res.status(201).json(newFolder);
+    res.status(201).json(newFolder);
+    return;
   } catch (error: any) {
     console.error("Internal server error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       error: error.message || "Internal server error",
     });
+    return;
   }
 };
 
-export const updateFolder = async (req: Request, res: Response) => {
+export const updateFolder = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
   const { name } = req.body;
-  const userId = req.user?.id;
+  const user = req.user;
+  const userId = user?.id;
 
-  if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+  if (!user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   try {
@@ -66,11 +74,13 @@ export const updateFolder = async (req: Request, res: Response) => {
       .single();
 
     if (!existingFolder) {
-      return res.status(404).json({ error: "Folder not found" });
+      res.status(404).json({ error: "Folder not found" });
+      return;
     }
 
     if (existingFolder.user_id !== userId) {
-      return res.status(403).json({ error: "Unauthorized" });
+      res.status(403).json({ error: "Unauthorized" });
+      return;
     }
 
     // Update the folder name
@@ -83,15 +93,22 @@ export const updateFolder = async (req: Request, res: Response) => {
 
     if (error) throw error;
 
-    return res.status(200).json(updatedFolder);
+    res.status(200).json(updatedFolder);
+    return;
   } catch (error) {
     console.error("Update error:", error);
-    return res.status(500).json({ error: "Failed to update folder" });
+    res.status(500).json({ error: "Failed to update folder" });
+    return;
   }
 };
 
-export const getFolders = async (req: Request, res: Response) => {
-  const userId = req.user?.id;
+export const getFolders = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const user = req.user;
+  const userId = user?.id;
+
   try {
     const { data: folders, error } = await supabase
       .from("Folders")
@@ -99,18 +116,21 @@ export const getFolders = async (req: Request, res: Response) => {
       .eq("user_id", userId);
     if (error) throw error;
 
-    return res.json(folders);
+    res.json(folders);
+    return;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    return res.status(500).json({
+    res.status(500).json({
       error: error.message || "Internal server error",
     });
+    return;
   }
 };
 
 export const getFolderDetails = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const userId = req.user?.id;
+  const user = req.user;
+  const userId = user?.id;
 
   try {
     //get the current folder details
@@ -120,8 +140,11 @@ export const getFolderDetails = async (req: Request, res: Response) => {
       .eq("id", id)
       .single()) as { data: Folder; error: PostgrestError | null };
 
-    if (folder.user_id !== userId)
-      return res.status(403).json({ error: "Unauthorized" });
+    if (folder.user_id !== userId) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+
     if (error) {
       throw error || new Error("Folder not found");
     }
@@ -151,18 +174,25 @@ export const getFolderDetails = async (req: Request, res: Response) => {
       subfolders: subfolders || [],
     };
 
-    return res.status(200).json(folderDetails);
+    res.status(200).json(folderDetails);
+    return;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    return res.status(500).json({
+    res.status(500).json({
       error: error.message || "Internal server error",
     });
+    return;
   }
 };
 
 export const deleteFolder = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const userId = req.user?.id;
+  const user = req.user;
+  const userId = user?.id;
+  if (!user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
 
   try {
     // Verify ownership
@@ -172,9 +202,15 @@ export const deleteFolder = async (req: Request, res: Response) => {
       .eq("id", id)
       .single();
 
-    if (!folder) return res.status(404).json({ error: "Folder not found" });
-    if (folder.user_id !== userId)
-      return res.status(403).json({ error: "Unauthorized" });
+    if (!folder) {
+      res.status(404).json({ error: "Folder not found" });
+      return;
+    }
+
+    if (folder.user_id !== userId) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
 
     // Delete files first
     await supabase.from("Files").delete().eq("folder_id", id);
@@ -183,11 +219,13 @@ export const deleteFolder = async (req: Request, res: Response) => {
     const { error } = await supabase.from("Folders").delete().eq("id", id);
     if (error) throw error;
 
-    return res.status(200).json({ message: "Folder deleted successfully" });
+    res.status(200).json({ message: "Folder deleted successfully" });
+    return;
   } catch (error: any) {
     console.error("Delete error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       error: error.message || "Internal server error",
     });
+    return;
   }
 };
