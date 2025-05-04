@@ -1,29 +1,26 @@
 import { Request, Response, NextFunction, json } from "express";
 import { supabase } from "../utils/supabaseClient";
 import multer from "multer";
-import passport, {
-  handleCreateUser,
-  handleUpdatePassword,
-  handleUpdateName,
-  handleCreateFolder,
-  handleGetFolders,
+import sanitizeFilename from "sanitize-filename";
+import {
   handleGetFolderDetails,
-  handleDeleteFolder,
-  handleUploadSingleFile,
-  handleUploadMultipleFiles,
-  handleUpdateFile,
   handleGetUser,
-  handleDeleteFile,
   handleGetFile,
 } from "../services/userService";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { CustomUser } from "../services/userService";
-import { body, validationResult } from "express-validator";
 
 export interface CustomRequest {
   token?: string;
   user?: any;
+}
+
+interface FileMetadata {
+  user_id?: string;
+  folder_id: string | null;
+  name: string;
+  size: number;
+  file_type: string;
+  storage_path: string;
 }
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -52,14 +49,14 @@ export const uploadForm = async (req: Request, res: Response) => {
 };
 
 export const uploadSingleFile = async (req: Request, res: Response) => {
-  jwt.verify(req.token as string, jwtSecret, (err, authData) => {
-    if (err) {
-      console.log("Error verifying jwt: ", err);
-      res.status(403).json({ err });
-    } else {
-      console.log("auth data: ", authData);
-    }
-  });
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    res.status(401).json({ error: "No token provided" });
+    return;
+  }
+
+  const user = req.user;
+  const userId = user?.id;
 
   if (!req.file) {
     res.status(400).json({ message: "No file uploaded" });
@@ -68,52 +65,34 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
 
   try {
     const file = req.file;
-    const filePath = `uploads/${Date.now()}-${file.originalname}`;
-    const { folderid, userid, filename } = req.body;
-    const user = supabase.auth.getUser();
-    if (user) {
-      console.log("User ID:", (await user).data.user?.id);
-    } else {
-      console.log("No user is logged in.");
-    }
+    const safeName = sanitizeFilename(file.originalname);
+    const filePath = `user-${user?.id}/${Date.now()}-${safeName}`;
+    const { folderid } = req.body;
 
-    //upload to supabase
-    const { data, error } = await supabase.storage
+    //upload to supabase storage
+    const { error: uploadError } = await supabase.storage
       .from("user-files")
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
+        upsert: false, // Prevent overwrites
       });
 
+    if (uploadError) throw uploadError;
 
-    if (error) {
-      res.status(500).json({ message: "Error uploading file", error });
-      return;
-    }
-
+    const fileMetadata: FileMetadata = {
+      user_id: userId,
+      folder_id: folderid || null,
+      name: safeName,
+      size: file.size,
+      file_type: file.mimetype,
+      storage_path: filePath,
+    };
     // Insert metadata into the database
-    const { data: dbData, error: dbError } = await supabase
+    const { error: dbError } = await supabase
       .from("Files")
-      .insert([
-        {
-          user_id: userid,
-          folder_id: folderid,
-          name: filename,
-          size: file.size,
-          file_type: file.mimetype,
-        },
-      ]);
+      .insert(fileMetadata);
 
-    if (dbError) {
-      console.error("Database error:", dbError);
-      res.status(500).json({ message: "Error saving file metadata" });
-      return;
-    }
-
-    if (error) {
-      console.error("Upload error:", error);
-      res.status(500).json({ message: "Error uploading file" });
-      return;
-    }
+    if (dbError) throw dbError;
 
     const { publicUrl } = supabase.storage
       .from("user-files")
@@ -121,7 +100,7 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
 
     res
       .status(201)
-      .json({ message: "File uploaded successfully", url: publicUrl });
+      .json({success: true, url: publicUrl });
   } catch (err: any) {
     console.error("Upload error:", err);
     res.status(500).json({ message: "Error uploading file" });
@@ -132,21 +111,75 @@ export const uploadMultipleFiles = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    res.status(401).json({ error: "No token provided" });
+    return;
+  }
+
+  const user = req.user;
   if (!req.files || req.files.length === 0) {
     res.status(400).json({ message: "No files uploaded" });
   }
 
   try {
-    const { folderId, userId } = req.body;
+    const { folderid } = req.body;
     const files = req.files as Express.Multer.File[];
+    const maxSize = 15 * 1024 * 1024; //15MB
 
-    await handleUploadMultipleFiles(files, Number(folderId), Number(userId));
+    const uploadResults = await Promise.all(
+      files.map(async (file) => {
+        if (file.size) {
+          throw new Error(`File ${file.originalname} exceeds 15MB limit`);
+        }
 
-    res
-      .status(201)
-      .json({ message: "Files uploaded successfully", files: req.files });
-  } catch (err: any) {
-    console.error("Upload error:", err);
+        const safeName = sanitizeFilename(file.originalname);
+        const filePath = `user-${user?.id}/${Date.now()}-${safeName}`;
+
+        //upload to supabase storage
+        const { error: uploadError } = await supabase.storage
+          .from("user-files")
+          .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false,
+          });
+
+        if (uploadError) throw uploadError;
+
+        return {
+          user_id: user?.id,
+          folder_id: folderid || null,
+          name: safeName,
+          storage_path: filePath,
+          size: file.size,
+          file_type: file.mimetype,
+        } satisfies FileMetadata;
+      })
+      
+    );
+
+    const { error: dbError } = await supabase
+      .from('Files')
+      .insert(uploadResults);
+
+      if (dbError) throw dbError;
+
+      const filesWithUrls = await Promise.all(
+        uploadResults.map(async (file) => {
+          const { data: { publicUrl } } = supabase.storage
+            .from('user-files')
+            .getPublicUrl(file.storage_path);
+  
+          return { ...file, publicUrl };
+        })
+      );
+
+      res.status(201).json({
+        success: true,
+        files: filesWithUrls,
+      });
+  } catch (error: any) {
+    console.error("Upload error:", error);
     res.status(500).json({ message: "Error uploading files" });
   }
 };
