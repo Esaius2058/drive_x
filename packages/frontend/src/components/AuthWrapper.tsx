@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 
 const AuthWrapper = () => {
     return (
-        <div className="auth-wrapper">
+        <div className="app-container">
             <Outlet />
         </div>
     );
