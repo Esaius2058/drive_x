@@ -40,6 +40,7 @@
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "prismajs": "^1.0.2",
-    "punycode": "^2.3.1"
+    "punycode": "^2.3.1",
+    "sanitize-filename": "^1.6.3"
   }
 }
