@@ -62,8 +62,7 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export const 
- = async (
+export const createUser = async (
   req: Request,
   res: Response
 ): Promise<void> => {
