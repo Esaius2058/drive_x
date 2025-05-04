@@ -13,7 +13,7 @@ interface File {
   created_at?: Date;
 }
 
-export const deleteFile = async (req: Request, res: Response) => {
+export const deleteFile = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const userId = req.user?.id;
 
@@ -25,25 +25,33 @@ export const deleteFile = async (req: Request, res: Response) => {
       .eq("id", id)
       .single();
 
-    if (!file) return res.status(404).json({ error: "File not found" });
-    if (file.user_id !== userId)
-      return res.status(403).json({ error: "Unauthorized" });
+    if (!file){
+        res.status(404).json({ error: "File not found" });
+        return;
+    } 
+    if (file.user_id !== userId){
+        res.status(403).json({ error: "Unauthorized" });
+        return;
+    }
+     
 
     // Delete File
     const { error } = await supabase.from("Files").delete().eq("id", id);
 
     if (error) throw error;
 
-    return res.status(200).json({ message: "File deleted successfully" });
+    res.status(200).json({ message: "File deleted successfully" });
+    return;
   } catch (error: any) {
     console.error("Delete error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       error: error.message || "Internal server error",
     });
+    return;
   }
 };
 
-export const getFile = async (req: Request, res: Response) => {
+export const getFile = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const userId = req.user?.id;
 
@@ -55,28 +63,34 @@ export const getFile = async (req: Request, res: Response) => {
       .eq("id", id)
       .single()) as { data: File; error: PostgrestError | null };
 
-    if (file.user_id !== userId)
-      return res.status(403).json({ error: "Unauthorized" });
+    if (file.user_id !== userId){
+        res.status(403).json({ error: "Unauthorized" });
+        return;
+    }
+     
     if (error) {
       throw error || new Error("File not found");
     }
 
-    return res.status(200).json(file);
+    res.status(200).json(file);
+    return;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    return res.status(500).json({
+    res.status(500).json({
       error: error.message || "Internal server error",
     });
+    return;
   }
 };
 
-export const updateFile = async (req: Request, res: Response) => {
+export const updateFile = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { name } = req.body;
   const userId = req.user?.id;
 
   if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   try {
@@ -88,11 +102,13 @@ export const updateFile = async (req: Request, res: Response) => {
       .single();
 
     if (!existingFile) {
-      return res.status(404).json({ error: "File not found" });
+      res.status(404).json({ error: "File not found" });
+      return;
     }
 
     if (existingFile.user_id !== userId) {
-      return res.status(403).json({ error: "Unauthorized" });
+      res.status(403).json({ error: "Unauthorized" });
+      return ;
     }
 
     // Update the file name
@@ -105,14 +121,16 @@ export const updateFile = async (req: Request, res: Response) => {
 
     if (error) throw error;
 
-    return res.status(200).json(updatedFile);
+    res.status(200).json(updatedFile);
+    return ;
   } catch (error) {
     console.error("Update error:", error);
-    return res.status(500).json({ error: "Failed to update file" });
+    res.status(500).json({ error: "Failed to update file" });
+    return ;
   }
 };
 
-export const getFiles = async (req: Request, res: Response) => {
+export const getFiles = async (req: Request, res: Response): Promise<void> => {
   const userId = req.user?.id;
   try {
     const { data: files, error } = await supabase
@@ -121,11 +139,13 @@ export const getFiles = async (req: Request, res: Response) => {
       .eq("user_id", userId);
     if (error) throw error;
 
-    return res.json(files);
+    res.json(files);
+    return ;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    return res.status(500).json({
+    res.status(500).json({
       error: error.message || "Internal server error",
     });
+    return;
   }
 };
