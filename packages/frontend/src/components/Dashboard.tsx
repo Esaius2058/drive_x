@@ -4,18 +4,7 @@ import { DashboardNavBar } from "./NavBar";
 import SideBar from "./SideBar";
 import { Progress } from "./Progress";
 
-const Dashboard = () => {
-  /*const [data, setData] = useState<any>(null);
-
-  useEffect(() => {
-    fetch("/api/profile")
-      .then((response) => response.json())
-      .then((data) => setData(data));
-  }, []);
-
-  if (!data) {
-    return <div>Loading...</div>;
-  }*/
+const Dashboard = ({ userData }: any) => {
   const sidebarTabs = [
     { name: "recent", label: "Recent Files", icon: "/clock-regular.svg" },
     { name: "my-files", label: "My Files", icon: "/folder-closed-regular.svg" },
@@ -24,9 +13,11 @@ const Dashboard = () => {
     { name: "storage", label: "Storage", icon: "/cloud-solid.svg" },
     { name: "starred", label: "Starred", icon: "/starred-regular.svg" },
   ] as const;
-  const name = "";
-  const email = "";
-  const avatarUrl = "";
+  const { folderNames, folders, files, user, userNames} = userData;
+  const name = `${userNames[user.id]}` || "John Doe";
+  const email = `${user.email}` || "john324@gmail.com";
+  const avatarUrl = ``;
+  
 
   type SidebarTab = (typeof sidebarTabs)[number]["name"];
 
@@ -79,27 +70,53 @@ const Dashboard = () => {
                 <tr>
                   <th>Name</th>
                   <th>Parent Folder</th>
-                  <th>File Size</th>
+                  <th>Size</th>
                   <th>Owner</th>
                   <th>Modified</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>File 3</td>
-                  <td>File</td>
-                  <td>100</td>
-                  <td>Folder 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-                <tr>
-                  <td>File 4</td>
-                  <td>File</td>
-                  <td>100</td>
-                  <td>Folder 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-              </tbody>
+              {userData == null || undefined ? (
+                <tbody>
+                  <tr>
+                    <td>File 3</td>
+                    <td>File</td>
+                    <td>100</td>
+                    <td>Folder 1</td>
+                    <td>2021-01-01</td>
+                  </tr>
+                  <tr>
+                    <td>File 4</td>
+                    <td>File</td>
+                    <td>100</td>
+                    <td>Folder 1</td>
+                    <td>2021-01-01</td>
+                  </tr>
+                </tbody>
+              ) : (
+                <tbody>
+                  {/*Render folders first*/}
+                  {folders.map((folder: any) => (
+                    <tr key={folder.id}>
+                      <td>{folderNames[folder.id]}</td>
+                      <td>{folderNames[folder.parent_id] || "--"}</td>
+                      <td>{folder.size}</td>
+                      <td>{userNames[folder.user_id]}</td>
+                      <td>{folder.updated_at || folder.created_at}</td>
+                    </tr>
+                  ))}+
+                  {
+                    files.map((file: any) => (
+                      <tr key={file.id}>
+                        <td>{file.name}</td>
+                        <td>--</td>
+                        <td>{file.size}</td>
+                        <td>{userNames[file.user_id]}</td>
+                        <td>{file.updated_at}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              )}
             </table>
           </div>
         );
@@ -218,7 +235,12 @@ const Dashboard = () => {
   };
   return (
     <div className="dashboard-page">
-      <DashboardNavBar name={name} email={email} usedStoragePercentage={usedStoragePercentage} avatarUrl={avatarUrl}/>
+      <DashboardNavBar
+        name={name}
+        email={email}
+        usedStoragePercentage={usedStoragePercentage}
+        avatarUrl={avatarUrl}
+      />
       <div className="dashboard-body">
         <SideBar
           activeButton={activeButton}
