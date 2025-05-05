@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Progress } from "./Progress";
+import { useRef } from "react";
+import { uploadSingleFile } from "@/services/upload";
 
 type SideBarTab =
   | "recent"
@@ -27,6 +29,40 @@ const SideBar = ({
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const buttonName = event.currentTarget.name;
     setActiveButton(buttonName as SideBarTab);
+  };
+
+  const uploadForm = useRef<HTMLFormElement>(null);
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const form = uploadForm.current;
+    if (!form) return;
+
+    const formData = new FormData(form);
+    const fileInput = form.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement | null;
+
+    if (!fileInput?.files?.length || fileInput.files.length === 0) {
+      alert("Please select a file first");
+      return;
+    }
+
+    formData.append("file-upload", fileInput.files[0]);
+
+    try {
+      const result = await uploadSingleFile(formData);
+      console.log("Upload successful:", result);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      // Handle error in UI
+    }
+
+    const handleUploadFolder = async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      
+    }
   };
 
   return (
@@ -105,7 +141,18 @@ const SideBar = ({
       </div>
       <div className="sidebar-footer">
         <h3>Drag and Drop</h3>
-        <input type="file" className="sidebar-upload-button" />
+        <form onSubmit={handleUpload} ref={uploadForm}>
+          <input
+            type="file"
+            className="sidebar-upload-button"
+            id="file-uploader"
+            name="file-uploader"
+            required
+          />
+          <button type="submit" className="primary-btn">
+            Upload
+          </button>
+        </form>
       </div>
     </div>
   );
