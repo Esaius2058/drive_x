@@ -74,7 +74,7 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
       .from("user-files")
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
-        upsert: false, // Prevent overwrites
+        upsert: false, // prevent overwrites
       });
 
     if (uploadError) throw uploadError;
