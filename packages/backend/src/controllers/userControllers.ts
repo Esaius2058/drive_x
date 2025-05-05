@@ -271,6 +271,7 @@ export const getProfile = async (
     res.status(401).json({ message: "Unauthorized: No user found" });
     return;
   }
+  const user = req.user;
 
   try {
     //fetch the user files
@@ -315,19 +316,14 @@ export const getProfile = async (
     //fetch the user's name from the database
     const { data, error } = await supabase
       .from("Users")
-      .select("*");
-    if (error) {
-      console.error("Error fetchfolder.parent_folder_iding user name:", error);
-      res.status(500).json({ message: "Error fetching user name" });
-      return;
-    }
-
-    const user = req.user;
-    const userNames = data.reduce((acc: any, user: any) => {
+      .select("id, name");
+    if (error) throw error;
+    const userNames: Record<string, string> = data.reduce((acc: any, user: any) => {
       acc[user.id] = user.name;
       return acc;
-    }, {});
-    console.log("Usernames ", userNames);
+    }, {} as Record<string, string>);
+    
+    console.log("Usernames Dictionary", userNames);
     res
       .status(200)
       .json({ userNames, folders, folderIds,folderNames, files, user});
