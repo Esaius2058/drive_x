@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Progress } from "./Progress";
 import { useRef } from "react";
-import { uploadSingleFile } from "@/services/upload";
+import { uploadSingleFile } from "../services/upload";
 
 type SideBarTab =
   | "recent"
@@ -10,13 +10,23 @@ type SideBarTab =
   | "trash"
   | "storage"
   | "starred";
+
+interface Notification {
+  message: string;
+  type?: "success" | "error" | "warning" | "info";
+  duration?: number; // milliseconds
+}
+
 type SideBarProps = {
+  token: string;
   activeButton: SideBarTab;
   setActiveButton: React.Dispatch<React.SetStateAction<SideBarTab>>;
   usedStorage: number;
   setusedStorage: number;
   storage: number;
   usedStoragePercentage: number;
+  notification: Notification;
+  setNotification: React.Dispatch<React.SetStateAction<Notification>>;
 };
 
 const SideBar = ({
@@ -25,6 +35,7 @@ const SideBar = ({
   usedStorage,
   storage,
   usedStoragePercentage,
+  setNotification
 }: SideBarProps) => {
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const buttonName = event.currentTarget.name;
@@ -38,31 +49,45 @@ const SideBar = ({
     const form = uploadForm.current;
     if (!form) return;
 
-    const formData = new FormData(form);
-    const fileInput = form.querySelector(
-      'input[type="file"]'
-    ) as HTMLInputElement | null;
-
-    if (!fileInput?.files?.length || fileInput.files.length === 0) {
-      alert("Please select a file first");
-      return;
-    }
-
-    formData.append("file-upload", fileInput.files[0]);
-
     try {
+      const formData = new FormData(form);
+      const fileInput = form.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement | null;
+
+      if (!fileInput?.files?.length || fileInput.files.length === 0) {
+        setNotification({
+          message: "Select a file first",
+          type: "error",
+        });
+        console.error("Select a file to upload");
+        return;
+      }
+
+      formData.append('file', fileInput.files[0]);
+      
       const result = await uploadSingleFile(formData);
       console.log("Upload successful:", result);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      // Handle error in UI
+    } catch (error: any) {
+      // Handle error
+      if (error instanceof Error) {
+        console.error("Upload error:", error.message);
+        setNotification({
+          message: error.message,
+          type: "error",
+        });
+      } else {
+        console.error("Upload error:", error.message, "Field error", error.field);
+        setNotification({
+          message: "Failed to upload file. Try again.",
+          type: "error",
+        });
+      }
     }
 
     const handleUploadFolder = async (e: React.FormEvent) => {
       e.preventDefault();
-
-      
-    }
+    };
   };
 
   return (
@@ -145,8 +170,8 @@ const SideBar = ({
           <input
             type="file"
             className="sidebar-upload-button"
-            id="file-uploader"
-            name="file-uploader"
+            id="file"
+            name="file"
             required
           />
           <button type="submit" className="primary-btn">
