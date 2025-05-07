@@ -366,7 +366,7 @@ input {
 }
 
 /*Dashboard Page*/
-.dashboard-page {
+.dashboard-page,.error-page {
   display: flex;
   justify-content: start;
   align-items: center;
@@ -596,6 +596,33 @@ div span {
   gap: 20px;
 }
 
+/*Error Page*/
+.error-page{
+  justify-content: center;
+  gap: 60px;
+  background-color: var(--light-gray);
+}
+.error-page h1{
+  font-size: 200px;
+  color: var(--navy);
+}
+.error-page h2{
+  font-size: 40px;
+  color: var(--navy);
+}
+.no-section{
+  display: flex;
+  flex-direction: column;
+}
+.no-section h1{
+  font-size: 40px;
+}
+.no-section h2{
+  font-size: 20px;
+}
+.no-section button{
+  width: 150px;
+}
 
 
 @media (prefers-color-scheme: light) {
