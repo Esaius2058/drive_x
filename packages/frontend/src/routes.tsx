@@ -3,6 +3,7 @@ import Landing from "./components/Landing";
 import AuthWrapper from "./components/AuthWrapper";
 import SignUp from "./components/SignUp";
 import Dashboard from "./components/Dashboard";
+import {ErrorPage} from "./components/404";
 
 const MainRoutes = () => {
     const routes = [{
@@ -27,7 +28,11 @@ const MainRoutes = () => {
         {
             path: "dashboard",
             element: <Dashboard />,
-        }]
+        },
+        {
+            path: "*",
+            element: <ErrorPage />,
+    }]
     }
     ];
 
