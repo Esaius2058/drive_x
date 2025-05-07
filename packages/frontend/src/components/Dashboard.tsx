@@ -3,6 +3,7 @@ import { act, useEffect, useState } from "react";
 import { DashboardNavBar } from "./NavBar";
 import SideBar from "./SideBar";
 import { Progress } from "./Progress";
+import { NoFiles, EmptyTrash, NoShared, NoStarred } from "./404";
 
 const Dashboard = ({ userData }: any) => {
   const sidebarTabs = [
@@ -13,11 +14,17 @@ const Dashboard = ({ userData }: any) => {
     { name: "storage", label: "Storage", icon: "/cloud-solid.svg" },
     { name: "starred", label: "Starred", icon: "/starred-regular.svg" },
   ] as const;
-  const { folderNames, folders, files, user, userNames} = userData;
+
+  interface Notification {
+    message: string;
+    type?: "success" | "error" | "warning" | "info";
+    duration?: number; // milliseconds
+  }
+
+  const { folderNames, folders, files, user, userNames, token } = userData;
   const name = `${userNames[user.id]}` || "John Doe";
   const email = `${user.email}` || "john324@gmail.com";
   const avatarUrl = ``;
-  
 
   type SidebarTab = (typeof sidebarTabs)[number]["name"];
 
@@ -25,132 +32,201 @@ const Dashboard = ({ userData }: any) => {
   const [storage, setStorage] = useState<number>(0);
   const [usedStorage, setUsedStorage] = useState<number>(0);
   const [usedStoragePercentage, setUsedStoragePercentage] = useState<number>(0);
+  const [notification, setNotification] = useState<Notification>({
+    message: "",
+    type: "success",
+    duration: 5 * 3600, //5 milliseconds
+  });
 
   const renderSection = (activeButton: SidebarTab) => {
     switch (activeButton) {
       case "recent":
         return (
           <div id="recent-files" className="dashboard-section">
-            <h2>Recent Files</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Parent Folder</th>
-                  <th>File Size</th>
-                  <th>Owner</th>
-                  <th>Modified</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>File 1</td>
-                  <td>Folder 1</td>
-                  <td>100</td>
-                  <td>User 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-                <tr>
-                  <td>File 2</td>
-                  <td>Folder 2</td>
-                  <td>200</td>
-                  <td>User 2</td>
-                  <td>2021-01-02</td>
-                </tr>
-              </tbody>
-            </table>
+            {files.length == 0 && folders.length == 0 ? (
+              <NoFiles />
+            ) : (
+              <>
+                <h2>Recent Files</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Parent Folder</th>
+                      <th>Size</th>
+                      <th>Owner</th>
+                      <th>Modified</th>
+                    </tr>
+                  </thead>
+                  {userData == null || undefined ? (
+                    <tbody>
+                      <tr>
+                        <td>File 3</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                      <tr>
+                        <td>File 4</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                    </tbody>
+                  ) : (
+                    <tbody>
+                      {/*Render folders first*/}
+                      {folders.map((folder: any) => (
+                        <tr key={folder.id}>
+                          <td>{folderNames[folder.id]}</td>
+                          <td>{folderNames[folder.parent_id] || "--"}</td>
+                          <td>{folder.size}</td>
+                          <td>{userNames[folder.user_id]}</td>
+                          <td>{folder.updated_at || folder.created_at}</td>
+                        </tr>
+                      ))}
+                      {files.map((file: any) => (
+                        <tr key={file.id}>
+                          <td>{file.name}</td>
+                          <td>--</td>
+                          <td>{file.size}</td>
+                          <td>{userNames[file.user_id]}</td>
+                          <td>{file.updated_at}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  )}
+                </table>
+              </>
+            )}
           </div>
         );
       case "my-files":
         return (
           <div id="my-files" className="dashboard-section">
-            <h2>My Files</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Parent Folder</th>
-                  <th>Size</th>
-                  <th>Owner</th>
-                  <th>Modified</th>
-                </tr>
-              </thead>
-              {userData == null || undefined ? (
-                <tbody>
-                  <tr>
-                    <td>File 3</td>
-                    <td>File</td>
-                    <td>100</td>
-                    <td>Folder 1</td>
-                    <td>2021-01-01</td>
-                  </tr>
-                  <tr>
-                    <td>File 4</td>
-                    <td>File</td>
-                    <td>100</td>
-                    <td>Folder 1</td>
-                    <td>2021-01-01</td>
-                  </tr>
-                </tbody>
-              ) : (
-                <tbody>
-                  {/*Render folders first*/}
-                  {folders.map((folder: any) => (
-                    <tr key={folder.id}>
-                      <td>{folderNames[folder.id]}</td>
-                      <td>{folderNames[folder.parent_id] || "--"}</td>
-                      <td>{folder.size}</td>
-                      <td>{userNames[folder.user_id]}</td>
-                      <td>{folder.updated_at || folder.created_at}</td>
+            {files.length == 0 && folders.length == 0 ? (
+              <NoFiles />
+            ) : (
+              <>
+                <h2>My Files</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Parent Folder</th>
+                      <th>Size</th>
+                      <th>Owner</th>
+                      <th>Modified</th>
                     </tr>
-                  ))}+
-                  {
-                    files.map((file: any) => (
-                      <tr key={file.id}>
-                        <td>{file.name}</td>
-                        <td>--</td>
-                        <td>{file.size}</td>
-                        <td>{userNames[file.user_id]}</td>
-                        <td>{file.updated_at}</td>
+                  </thead>
+                  {userData == null || undefined ? (
+                    <tbody>
+                      <tr>
+                        <td>File 3</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
                       </tr>
-                    ))
-                  }
-                </tbody>
-              )}
-            </table>
+                      <tr>
+                        <td>File 4</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                    </tbody>
+                  ) : (
+                    <tbody>
+                      {/*Render folders first*/}
+                      {folders.map((folder: any) => (
+                        <tr key={folder.id}>
+                          <td>{folderNames[folder.id]}</td>
+                          <td>{folderNames[folder.parent_id] || "--"}</td>
+                          <td>{folder.size}</td>
+                          <td>{userNames[folder.user_id]}</td>
+                          <td>{folder.updated_at || folder.created_at}</td>
+                        </tr>
+                      ))}
+                      {files.map((file: any) => (
+                        <tr key={file.id}>
+                          <td>{file.name}</td>
+                          <td>--</td>
+                          <td>{file.size}</td>
+                          <td>{userNames[file.user_id]}</td>
+                          <td>{file.updated_at}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  )}
+                </table>
+              </>
+            )}
           </div>
         );
       case "shared":
         return (
           <div id="shared" className="dashboard-section">
-            <h2>Shared With Me</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Parent Folder</th>
-                  <th>File Size</th>
-                  <th>Owner</th>
-                  <th>Date Shared</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>File 3</td>
-                  <td>File</td>
-                  <td>100</td>
-                  <td>Folder 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-                <tr>
-                  <td>File 4</td>
-                  <td>File</td>
-                  <td>100</td>
-                  <td>Folder 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-              </tbody>
-            </table>
+            {files.length == 0 && folders.length == 0 ? (
+              <NoShared />
+            ) : (
+              <>
+                <h2>Shared With Me</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Parent Folder</th>
+                      <th>Size</th>
+                      <th>Owner</th>
+                      <th>Modified</th>
+                    </tr>
+                  </thead>
+                  {userData == null || undefined ? (
+                    <tbody>
+                      <tr>
+                        <td>File 3</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                      <tr>
+                        <td>File 4</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                    </tbody>
+                  ) : (
+                    <tbody>
+                      {/*Render folders first*/}
+                      {folders.map((folder: any) => (
+                        <tr key={folder.id}>
+                          <td>{folderNames[folder.id]}</td>
+                          <td>{folderNames[folder.parent_id] || "--"}</td>
+                          <td>{folder.size}</td>
+                          <td>{userNames[folder.user_id]}</td>
+                          <td>{folder.updated_at || folder.created_at}</td>
+                        </tr>
+                      ))}
+                      {files.map((file: any) => (
+                        <tr key={file.id}>
+                          <td>{file.name}</td>
+                          <td>--</td>
+                          <td>{file.size}</td>
+                          <td>{userNames[file.user_id]}</td>
+                          <td>{file.updated_at}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  )}
+                </table>
+              </>
+            )}
           </div>
         );
       case "storage":
@@ -168,67 +244,127 @@ const Dashboard = ({ userData }: any) => {
       case "starred":
         return (
           <div id="starred" className="dashboard-section">
-            <h2>Starred</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Parent Folder</th>
-                  <th>File Size</th>
-                  <th>Owner</th>
-                  <th>Date Shared</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>File 3</td>
-                  <td>File</td>
-                  <td>100</td>
-                  <td>Folder 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-                <tr>
-                  <td>File 4</td>
-                  <td>File</td>
-                  <td>100</td>
-                  <td>Folder 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-              </tbody>
-            </table>
+            {files.length == 0 && folders.length == 0 ? (
+              <NoStarred />
+            ) : (
+              <>
+                <h2>Starred Files</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Parent Folder</th>
+                      <th>Size</th>
+                      <th>Owner</th>
+                      <th>Modified</th>
+                    </tr>
+                  </thead>
+                  {userData == null || undefined ? (
+                    <tbody>
+                      <tr>
+                        <td>File 3</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                      <tr>
+                        <td>File 4</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                    </tbody>
+                  ) : (
+                    <tbody>
+                      {/*Render folders first*/}
+                      {folders.map((folder: any) => (
+                        <tr key={folder.id}>
+                          <td>{folderNames[folder.id]}</td>
+                          <td>{folderNames[folder.parent_id] || "--"}</td>
+                          <td>{folder.size}</td>
+                          <td>{userNames[folder.user_id]}</td>
+                          <td>{folder.updated_at || folder.created_at}</td>
+                        </tr>
+                      ))}
+                      {files.map((file: any) => (
+                        <tr key={file.id}>
+                          <td>{file.name}</td>
+                          <td>--</td>
+                          <td>{file.size}</td>
+                          <td>{userNames[file.user_id]}</td>
+                          <td>{file.updated_at}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  )}
+                </table>
+              </>
+            )}
           </div>
         );
       case "trash":
         return (
           <div id="trash" className="dashboard-section">
-            <h2>Trash</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Parent Folder</th>
-                  <th>File Size</th>
-                  <th>Owner</th>
-                  <th>Date Shared</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>File 3</td>
-                  <td>File</td>
-                  <td>100</td>
-                  <td>Folder 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-                <tr>
-                  <td>File 4</td>
-                  <td>File</td>
-                  <td>100</td>
-                  <td>Folder 1</td>
-                  <td>2021-01-01</td>
-                </tr>
-              </tbody>
-            </table>
+            {files.length == 0 && folders.length == 0 ? (
+              <EmptyTrash />
+            ) : (
+              <>
+                <h2>Trash</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Parent Folder</th>
+                      <th>Size</th>
+                      <th>Owner</th>
+                      <th>Modified</th>
+                    </tr>
+                  </thead>
+                  {userData == null || undefined ? (
+                    <tbody>
+                      <tr>
+                        <td>File 3</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                      <tr>
+                        <td>File 4</td>
+                        <td>File</td>
+                        <td>100</td>
+                        <td>Folder 1</td>
+                        <td>2021-01-01</td>
+                      </tr>
+                    </tbody>
+                  ) : (
+                    <tbody>
+                      {/*Render folders first*/}
+                      {folders.map((folder: any) => (
+                        <tr key={folder.id}>
+                          <td>{folderNames[folder.id]}</td>
+                          <td>{folderNames[folder.parent_id] || "--"}</td>
+                          <td>{folder.size}</td>
+                          <td>{userNames[folder.user_id]}</td>
+                          <td>{folder.updated_at || folder.created_at}</td>
+                        </tr>
+                      ))}
+                      {files.map((file: any) => (
+                        <tr key={file.id}>
+                          <td>{file.name}</td>
+                          <td>--</td>
+                          <td>{file.size}</td>
+                          <td>{userNames[file.user_id]}</td>
+                          <td>{file.updated_at}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  )}
+                </table>
+              </>
+            )}
           </div>
         );
     }
@@ -249,6 +385,9 @@ const Dashboard = ({ userData }: any) => {
           setusedStorage={usedStorage}
           storage={storage}
           usedStoragePercentage={usedStoragePercentage}
+          notification={notification}
+          setNotification={setNotification}
+          token={token}
         />
         <div className="dashboard-content">
           {/*Dynamically Render Content*/ renderSection(activeButton)}
