@@ -554,6 +554,7 @@ div span {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-bottom: 30px;
 }
 .profile-info {
   padding: 8px 16px;
