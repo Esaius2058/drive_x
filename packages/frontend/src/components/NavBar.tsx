@@ -1,11 +1,19 @@
 import { Link } from "react-router-dom";
 import { UserAvatar } from "./UserAvatar";
 
+interface Notification {
+    message: string;
+    type?: "success" | "error" | "warning" | "info";
+    duration?: number; // milliseconds
+}
+
 interface DashboardNavbarProps {
     name: string;
     email: string;
     usedStoragePercentage: number;
     avatarUrl?: string;
+    notification: Notification;
+    setNotification: React.Dispatch<React.SetStateAction<Notification>>;
 }
 
 const LandingNavBar = () => {
@@ -27,7 +35,7 @@ const LandingNavBar = () => {
 
 const LandingNavBarMobile = () => {}
 
-const DashboardNavBar = ({name, email, avatarUrl, usedStoragePercentage}: DashboardNavbarProps) => {
+const DashboardNavBar = ({name, email, avatarUrl, usedStoragePercentage, notification, setNotification}: DashboardNavbarProps) => {
     return (
         <nav className="navbar dashboard-nav">
             <Link to={"/"} className="navbar-logo">
@@ -39,7 +47,7 @@ const DashboardNavBar = ({name, email, avatarUrl, usedStoragePercentage}: Dashbo
                 <input type="text" placeholder="Search in Drive" className="search-input"/>
                 <img src="/xmark-solid.svg" alt="x-icon" className="navbar-icon"/>
             </div>
-            <UserAvatar name={name} email={email} avatarUrl={avatarUrl} usedStoragePercentage={usedStoragePercentage}/>
+            <UserAvatar name={name} email={email} avatarUrl={avatarUrl} usedStoragePercentage={usedStoragePercentage} setNotification={setNotification}/>
         </nav>
     );
 }
