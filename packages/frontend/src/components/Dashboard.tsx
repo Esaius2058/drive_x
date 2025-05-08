@@ -376,6 +376,8 @@ const Dashboard = ({ userData }: any) => {
         email={email}
         usedStoragePercentage={usedStoragePercentage}
         avatarUrl={avatarUrl}
+        notification={notification}
+        setNotification={setNotification}
       />
       <div className="dashboard-body">
         <SideBar
@@ -385,7 +387,6 @@ const Dashboard = ({ userData }: any) => {
           setusedStorage={usedStorage}
           storage={storage}
           usedStoragePercentage={usedStoragePercentage}
-          notification={notification}
           setNotification={setNotification}
           token={token}
         />
