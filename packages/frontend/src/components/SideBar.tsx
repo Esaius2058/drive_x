@@ -25,7 +25,6 @@ type SideBarProps = {
   setusedStorage: number;
   storage: number;
   usedStoragePercentage: number;
-  notification: Notification;
   setNotification: React.Dispatch<React.SetStateAction<Notification>>;
 };
 
