@@ -1,7 +1,7 @@
 "use client";
 import { useAuth } from "./AuthContext";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, ReactEventHandler } from "react";
 import { updatePassword } from "../services/update";
 
 interface Notification {
@@ -71,7 +71,9 @@ export function UserAvatar({
   };
 
   const passwordRef = useRef<HTMLFormElement>(null);
-  const handlePasswordChange = async () => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     const form = passwordRef.current;
     if (!form) return;
 
@@ -92,18 +94,15 @@ export function UserAvatar({
 
       if (!update) {
         throw new Error("No response from server");
-      }
-
-      if (update.error) {
-        throw new Error(update.error);
-      }
-
-      if (update.message) {
+      }else{
         setNotification({
           message: update.message || "Password updated successfully!",
           type: "success",
         });
-        return;
+      }
+
+      if (update.error) {
+        throw new Error(update.error);
       }
 
       setPasswordToggle(false);
@@ -157,7 +156,6 @@ export function UserAvatar({
               >
                 Change Password
               </button>
-              <button className="dropdown-item">Manage Storage</button>
               <button
                 className="dropdown-item"
                 type="button"
