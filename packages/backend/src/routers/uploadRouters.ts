@@ -15,6 +15,7 @@ import {
   getProfile,
   loginUser,
   logoutUser,
+  updatePassword,
 } from "../controllers/userControllers";
 import {
   createFolder,
@@ -28,6 +29,7 @@ import {
   getFile,
   deleteFile,
 } from "../controllers/fileControllers";
+import { handleUpdatePassword } from "../services/userService";
 
 const router = Router();
 
@@ -52,27 +54,7 @@ const upload = multer({
   limits: {
     fileSize: 15 * 1024 * 1024, // 15MB
     files: 5, // Optional: limit number of files
-  },
-  fileFilter: (req, file, cb) => {
-    // Optional: validate file types
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "application/pdf",
-      "image/svg",
-      "text/doc",
-      "text/html",
-      "text/plain",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      const error = new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname);
-      error.message = `Invalid file type: ${file.mimetype}. Allowed types: ${allowedTypes.join(', ')}`;
-      cb(error);
-    }
-  },
+  }
 });
 
 router.get("/", (req: Request, res: Response) => {
@@ -91,7 +73,11 @@ router.post("/log-out", logoutUser);
 
 router.use(verifyJWT);
 
+// Profile Routes
 router.get("/profile", getProfile);
+router.post("/profile/update/new-password", updatePassword);
+router.post("/profile/delete");
+
 // Folder Routes
 router.get("/folders/new-folder", newFolderForm);
 router.get("/folders", getFolders);
@@ -106,36 +92,11 @@ router.get("/file/update:id", getUpdateForm);
 router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
 router.post("/files/delete/:id", deleteFile);
-router.post("/file/upload", upload.single("file"), uploadSingleFile);
+router.post("/file/upload", upload.single('file'), uploadSingleFile);
 router.post(
   "/files/upload",
-  upload.array("files", 5),
+  upload.array('files', 5),
   uploadMultipleFiles
 );
-
-const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    res.status(400).json({
-      error: err.code,
-      message: err.message,
-      field: err.field
-    });
-    return; // Explicit return to satisfy TypeScript
-  }
-
-  if (err instanceof Error) {
-    res.status(500).json({
-      error: 'INTERNAL_SERVER_ERROR',
-      message: err.message
-    });
-    return;
-  }
-
-  res.status(500).json({
-    error: 'UNKNOWN_ERROR',
-    message: 'Something went wrong'
-  });
-};
-router.use(errorHandler);
 
 export default router;
