@@ -65,6 +65,7 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
 
   try {
     const file = req.file;
+    console.log("File:", file);
     const safeName = sanitizeFilename(file.originalname);
     const filePath = `user-${user?.id}/${Date.now()}-${safeName}`;
     const { folderid } = req.body;
@@ -90,7 +91,7 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
     // Insert metadata into the database
     const { error: dbError } = await supabase
       .from("Files")
-      .insert(fileMetadata);
+      .insert([fileMetadata]);
 
     if (dbError) throw dbError;
 
@@ -98,12 +99,12 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
       .from("user-files")
       .getPublicUrl(filePath).data;
 
-    res
-      .status(201)
-      .json({success: true, url: publicUrl });
+    res.status(201).json({ success: true, url: publicUrl });
+    return;
   } catch (err: any) {
     console.error("Upload error:", err);
     res.status(500).json({ message: "Error uploading file" });
+    return;
   }
 };
 
@@ -155,29 +156,28 @@ export const uploadMultipleFiles = async (
           file_type: file.mimetype,
         } satisfies FileMetadata;
       })
-      
     );
 
     const { error: dbError } = await supabase
-      .from('Files')
+      .from("Files")
       .insert(uploadResults);
 
-      if (dbError) throw dbError;
+    if (dbError) throw dbError;
 
-      const filesWithUrls = await Promise.all(
-        uploadResults.map(async (file) => {
-          const { data: { publicUrl } } = supabase.storage
-            .from('user-files')
-            .getPublicUrl(file.storage_path);
-  
-          return { ...file, publicUrl };
-        })
-      );
+    const filesWithUrls = await Promise.all(
+      uploadResults.map(async (file) => {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("user-files").getPublicUrl(file.storage_path);
 
-      res.status(201).json({
-        success: true,
-        files: filesWithUrls,
-      });
+        return { ...file, publicUrl };
+      })
+    );
+
+    res.status(201).json({
+      success: true,
+      files: filesWithUrls,
+    });
   } catch (error: any) {
     console.error("Upload error:", error);
     res.status(500).json({ message: "Error uploading files" });
