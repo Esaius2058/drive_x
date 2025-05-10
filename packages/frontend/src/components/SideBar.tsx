@@ -64,6 +64,7 @@ const SideBar = ({
       }
 
       formData.append('file', fileInput.files[0]);
+      console.log("File Input", fileInput);
       
       const result = await uploadSingleFile(formData);
       console.log("Upload successful:", result);
