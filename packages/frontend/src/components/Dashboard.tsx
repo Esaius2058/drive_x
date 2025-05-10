@@ -378,6 +378,8 @@ const Dashboard = ({ userData }: any) => {
         avatarUrl={avatarUrl}
         notification={notification}
         setNotification={setNotification}
+        files={files}
+        folders={folders}
       />
       <div className="dashboard-body">
         <SideBar
