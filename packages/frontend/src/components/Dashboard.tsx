@@ -4,8 +4,9 @@ import { DashboardNavBar } from "./NavBar";
 import SideBar from "./SideBar";
 import { Progress } from "./Progress";
 import { NoFiles, EmptyTrash, NoShared, NoStarred } from "./404";
+import { useLocation } from "react-router-dom";
 
-const Dashboard = ({ userData }: any) => {
+const Dashboard = () => {
   const sidebarTabs = [
     { name: "recent", label: "Recent Files", icon: "/clock-regular.svg" },
     { name: "my-files", label: "My Files", icon: "/folder-closed-regular.svg" },
@@ -21,7 +22,10 @@ const Dashboard = ({ userData }: any) => {
     duration?: number; // milliseconds
   }
 
-  const { folderNames, folders, files, user, userNames, token } = userData;
+  const location = useLocation();
+  const { userFiles } = location.state || {};
+
+  const { folderNames, folders, files, user, userNames, token } = userFiles;
   const name = `${userNames[user.id]}` || "John Doe";
   const email = `${user.email}` || "john324@gmail.com";
   const avatarUrl = ``;
@@ -58,7 +62,7 @@ const Dashboard = ({ userData }: any) => {
                       <th>Modified</th>
                     </tr>
                   </thead>
-                  {userData == null || undefined ? (
+                  {userFiles == null || undefined ? (
                     <tbody>
                       <tr>
                         <td>File 3</td>
@@ -121,7 +125,7 @@ const Dashboard = ({ userData }: any) => {
                       <th>Modified</th>
                     </tr>
                   </thead>
-                  {userData == null || undefined ? (
+                  {userFiles == null || undefined ? (
                     <tbody>
                       <tr>
                         <td>File 3</td>
@@ -184,7 +188,7 @@ const Dashboard = ({ userData }: any) => {
                       <th>Modified</th>
                     </tr>
                   </thead>
-                  {userData == null || undefined ? (
+                  {userFiles == null || undefined ? (
                     <tbody>
                       <tr>
                         <td>File 3</td>
@@ -259,7 +263,7 @@ const Dashboard = ({ userData }: any) => {
                       <th>Modified</th>
                     </tr>
                   </thead>
-                  {userData == null || undefined ? (
+                  {userFiles == null || undefined ? (
                     <tbody>
                       <tr>
                         <td>File 3</td>
@@ -322,7 +326,7 @@ const Dashboard = ({ userData }: any) => {
                       <th>Modified</th>
                     </tr>
                   </thead>
-                  {userData == null || undefined ? (
+                  {userFiles == null || undefined ? (
                     <tbody>
                       <tr>
                         <td>File 3</td>
@@ -380,6 +384,8 @@ const Dashboard = ({ userData }: any) => {
         setNotification={setNotification}
         files={files}
         folders={folders}
+        folderNames={folderNames}
+        userNames={userNames}
       />
       <div className="dashboard-body">
         <SideBar
