@@ -3,6 +3,7 @@ import { useAuth } from "./AuthContext";
 
 import { useState, useRef, useEffect, ReactEventHandler } from "react";
 import { updatePassword } from "../services/update";
+import { deleteUserProfile } from "../services/auth";
 
 interface Notification {
   message: string;
@@ -27,6 +28,7 @@ export function UserAvatar({
 }: UserAvatarProps) {
   const [open, setOpen] = useState(false);
   const [passwordToggle, setPasswordToggle] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,7 +96,7 @@ export function UserAvatar({
 
       if (!update) {
         throw new Error("No response from server");
-      }else{
+      } else {
         setNotification({
           message: update.message || "Password updated successfully!",
           type: "success",
@@ -118,6 +120,40 @@ export function UserAvatar({
         console.error("Error changing password:", error);
         setNotification({
           message: "Failed to change password. Try again.",
+          type: "error",
+        });
+      }
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    const flag = confirm(
+      "Are you sure you want to delete your account? This action cannot be undone."
+    );
+
+    if (!flag) {
+      return;
+    }
+
+    try {
+      const deleteResponse = await deleteUserProfile();
+
+      if (!deleteResponse) {
+        throw new Error(deleteResponse.message || "Failed to delete account");
+      } else {
+        window.location.href = "/auth/login";
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error deleting account:", error.message);
+        setNotification({
+          message: error.message,
+          type: "error",
+        });
+      } else {
+        console.error("Error deleting account:", error);
+        setNotification({
+          message: "Failed to delete account. Try again.",
           type: "error",
         });
       }
@@ -163,7 +199,12 @@ export function UserAvatar({
               >
                 Log Out
               </button>
-              <button className="dropdown-item">Delete Account</button>
+              <button
+                className="dropdown-item"
+                onClick={handleDeleteProfile}
+              >
+                Delete Account
+              </button>
             </div>
           ) : (
             <div className="password-change">
