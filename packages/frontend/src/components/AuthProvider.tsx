@@ -2,10 +2,19 @@ import {useEffect, useState} from "react";
 import { loginUser, signUpUser } from "../services/auth";
 import { AuthContext } from "./AuthContext";
 
+interface UserFiles{
+  userNames?: object, 
+  folders?: object, 
+  folderIds?: object, 
+  folderNames?: object, 
+  files?: object, 
+  user?: object
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any>(null);
     const [token, setToken] = useState<string | null>(null);
-    const [userFiles, setUserFiles] = useState<any>(null);
+    const [userFiles, setUserFiles] = useState<UserFiles>({});
   
     useEffect(() => {
       const token = localStorage.getItem("token");
