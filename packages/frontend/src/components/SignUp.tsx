@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import {useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 import Dashboard from "./Dashboard";
 
 const SignUp = () => {
@@ -63,13 +64,17 @@ const SignUp = () => {
 
     await login(email, password);
 
+    //handle loading state
+    //handle error state
     setIsAuthenticated(true);
   };
+
+  const navigate = useNavigate();
 
   return (
     <>
       {isAuthenticated ? (
-        <Dashboard userData={userFiles}/>
+        navigate('/dashboard', { state: { userFiles } })
       ) : (
         <div className="auth-page">
           <div className="auth-form">
