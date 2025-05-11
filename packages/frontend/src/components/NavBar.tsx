@@ -17,6 +17,8 @@ interface DashboardNavbarProps {
   setNotification: React.Dispatch<React.SetStateAction<Notification>>;
   files: any;
   folders: any;
+  folderNames: any;
+  userNames: any;
 }
 
 const LandingNavBar = () => {
@@ -47,6 +49,8 @@ const DashboardNavBar = ({
   setNotification,
   files,
   folders,
+  folderNames,
+  userNames,
 }: DashboardNavbarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const FileSearch = ({ files, folders }: any) => {
@@ -60,16 +64,26 @@ const DashboardNavBar = ({
 
     return (
       <div className="search-results">
-        {filteredFolders.map((folder: any) => (
-          <div key={folder.id} className="search-result">
-            {folder.name}
-          </div>
-        ))}
-        {filteredFiles.map((file: any) => (
-          <div key={file.id} className="search-result">
-            {file.name}
-          </div>
-        ))}
+        <tbody>
+          {filteredFolders.map((folder: any) => (
+            <tr key={folder.id} className="search-result">
+              <td>{folderNames[folder.id]}</td>
+              <td>{folderNames[folder.parent_id] || "--"}</td>
+              <td>{folder.size}</td>
+              <td>{userNames[folder.user_id]}</td>
+              <td>{folder.updated_at || folder.created_at}</td>
+            </tr>
+          ))}
+          {filteredFiles.map((file: any) => (
+            <tr key={file.id} className="search-result">
+              <td>{file.name}</td>
+              <td>--</td>
+              <td>{file.size}</td>
+              <td>{userNames[file.user_id]}</td>
+              <td>{file.updated_at}</td>
+            </tr>
+          ))}
+        </tbody>
       </div>
     );
   };
@@ -107,7 +121,6 @@ const DashboardNavBar = ({
         <div className="search-results-container">
           {searchQuery && <FileSearch files={files} folders={folders} />}
         </div>
-        
       </div>
       <UserAvatar
         name={name}
