@@ -19,6 +19,10 @@ interface DashboardNavbarProps {
   folders: any;
   folderNames: any;
   userNames: any;
+  decimalStorage: boolean;
+  setDecimalStorage: React.Dispatch<React.SetStateAction<boolean>>;
+  binaryStorageConversion: (bytes: number) => string;
+  decimalStorageConversion: (bytes: number) => string;
 }
 
 const LandingNavBar = () => {
@@ -45,6 +49,10 @@ const DashboardNavBar = ({
   email,
   avatarUrl,
   usedStoragePercentage,
+  decimalStorage,
+  setDecimalStorage,
+  binaryStorageConversion,
+  decimalStorageConversion,
   notification,
   setNotification,
   files,
@@ -62,6 +70,8 @@ const DashboardNavBar = ({
       folder.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const useDecimal = decimalStorage;
+
     return (
       <div className="search-results">
         <tbody>
@@ -69,7 +79,11 @@ const DashboardNavBar = ({
             <tr key={folder.id} className="search-result">
               <td>{folderNames[folder.id]}</td>
               <td>{folderNames[folder.parent_id] || "--"}</td>
-              <td>{folder.size}</td>
+              <td>
+                {useDecimal
+                  ? decimalStorageConversion(Number(folder.size))
+                  : binaryStorageConversion(Number(folder.size))}
+              </td>
               <td>{userNames[folder.user_id]}</td>
               <td>{folder.updated_at || folder.created_at}</td>
             </tr>
@@ -78,7 +92,11 @@ const DashboardNavBar = ({
             <tr key={file.id} className="search-result">
               <td>{file.name}</td>
               <td>--</td>
-              <td>{file.size}</td>
+              <td>
+                {useDecimal
+                  ? decimalStorageConversion(Number(file.size))
+                  : binaryStorageConversion(Number(file.size))}
+              </td>
               <td>{userNames[file.user_id]}</td>
               <td>{file.updated_at}</td>
             </tr>
@@ -128,6 +146,8 @@ const DashboardNavBar = ({
         avatarUrl={avatarUrl}
         usedStoragePercentage={usedStoragePercentage}
         setNotification={setNotification}
+        decimalStorage={decimalStorage}
+        setDecimalStorage={setDecimalStorage}
       />
     </nav>
   );
