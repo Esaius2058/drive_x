@@ -4,6 +4,7 @@ import { useAuth } from "./AuthContext";
 import { useState, useRef, useEffect, ReactEventHandler } from "react";
 import { updatePassword } from "../services/update";
 import { deleteUserProfile } from "../services/auth";
+import { Switch } from "./Switch";
 
 interface Notification {
   message: string;
@@ -17,6 +18,8 @@ interface UserAvatarProps {
   usedStoragePercentage: number;
   avatarUrl?: string;
   setNotification: React.Dispatch<React.SetStateAction<Notification>>;
+  decimalStorage: boolean;
+  setDecimalStorage: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function UserAvatar({
@@ -25,6 +28,8 @@ export function UserAvatar({
   avatarUrl,
   usedStoragePercentage,
   setNotification,
+  decimalStorage, 
+  setDecimalStorage,
 }: UserAvatarProps) {
   const [open, setOpen] = useState(false);
   const [passwordToggle, setPasswordToggle] = useState(false);
@@ -182,6 +187,13 @@ export function UserAvatar({
             <p className="user-storage">
               Storage: {usedStoragePercentage}% used
             </p>
+            <div className="storage-option">
+                <span className="settings-label">Decimal Storage</span>
+                <Switch
+                  checked={decimalStorage}
+                  onCheckedChange={setDecimalStorage}
+                />
+              </div>
           </div>
           <hr className="divider" />
           {passwordToggle == false ? (
