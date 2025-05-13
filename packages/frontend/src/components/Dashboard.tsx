@@ -41,6 +41,33 @@ const Dashboard = () => {
     type: "success",
     duration: 5 * 3600, //5 milliseconds
   });
+  const [decimalStorage, setDecimalStorage] = useState<boolean>(true);
+
+  const binaryStorageConversion = (bytes: number) => {
+    const kb = bytes / 1024;
+    const mb = kb / 1024;
+    const gb = mb / 1024;
+    const tb = gb / 1024;
+
+    if (tb >= 1) return `${tb.toFixed(2)} TB`;
+    if (gb >= 1) return `${gb.toFixed(2)} GB`;
+    if (mb >= 1) return `${mb.toFixed(2)} MB`;
+    if (kb >= 1) return `${kb.toFixed(2)} KB`;
+    return `${bytes} bytes`;
+  };
+
+  const decimalStorageConversion = (bytes: number) => {
+    const kb = bytes / 1000;
+    const mb = kb / 1000;
+    const gb = mb / 1000;
+    const tb = gb / 1000;
+
+    if (tb >= 1) return `${tb.toFixed(2)} TB`;
+    if (gb >= 1) return `${gb.toFixed(2)} GB`;
+    if (mb >= 1) return `${mb.toFixed(2)} MB`;
+    if (kb >= 1) return `${kb.toFixed(2)} KB`;
+    return `${bytes} bytes`;
+  };
 
   const renderSection = (activeButton: SidebarTab) => {
     switch (activeButton) {
@@ -86,7 +113,11 @@ const Dashboard = () => {
                         <tr key={folder.id}>
                           <td>{folderNames[folder.id]}</td>
                           <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>{folder.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(folder.size))
+                              : binaryStorageConversion(Number(folder.size))}
+                          </td>
                           <td>{userNames[folder.user_id]}</td>
                           <td>{folder.updated_at || folder.created_at}</td>
                         </tr>
@@ -95,7 +126,11 @@ const Dashboard = () => {
                         <tr key={file.id}>
                           <td>{file.name}</td>
                           <td>--</td>
-                          <td>{file.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(file.size))
+                              : binaryStorageConversion(Number(file.size))}
+                          </td>
                           <td>{userNames[file.user_id]}</td>
                           <td>{file.updated_at}</td>
                         </tr>
@@ -149,7 +184,11 @@ const Dashboard = () => {
                         <tr key={folder.id}>
                           <td>{folderNames[folder.id]}</td>
                           <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>{folder.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(folder.size))
+                              : binaryStorageConversion(Number(folder.size))}
+                          </td>
                           <td>{userNames[folder.user_id]}</td>
                           <td>{folder.updated_at || folder.created_at}</td>
                         </tr>
@@ -158,7 +197,11 @@ const Dashboard = () => {
                         <tr key={file.id}>
                           <td>{file.name}</td>
                           <td>--</td>
-                          <td>{file.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(file.size))
+                              : binaryStorageConversion(Number(file.size))}
+                          </td>
                           <td>{userNames[file.user_id]}</td>
                           <td>{file.updated_at}</td>
                         </tr>
@@ -212,7 +255,11 @@ const Dashboard = () => {
                         <tr key={folder.id}>
                           <td>{folderNames[folder.id]}</td>
                           <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>{folder.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(folder.size))
+                              : binaryStorageConversion(Number(folder.size))}
+                          </td>
                           <td>{userNames[folder.user_id]}</td>
                           <td>{folder.updated_at || folder.created_at}</td>
                         </tr>
@@ -221,7 +268,11 @@ const Dashboard = () => {
                         <tr key={file.id}>
                           <td>{file.name}</td>
                           <td>--</td>
-                          <td>{file.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(file.size))
+                              : binaryStorageConversion(Number(file.size))}
+                          </td>
                           <td>{userNames[file.user_id]}</td>
                           <td>{file.updated_at}</td>
                         </tr>
@@ -287,7 +338,11 @@ const Dashboard = () => {
                         <tr key={folder.id}>
                           <td>{folderNames[folder.id]}</td>
                           <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>{folder.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(folder.size))
+                              : binaryStorageConversion(Number(folder.size))}
+                          </td>
                           <td>{userNames[folder.user_id]}</td>
                           <td>{folder.updated_at || folder.created_at}</td>
                         </tr>
@@ -296,7 +351,11 @@ const Dashboard = () => {
                         <tr key={file.id}>
                           <td>{file.name}</td>
                           <td>--</td>
-                          <td>{file.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(file.size))
+                              : binaryStorageConversion(Number(file.size))}
+                          </td>
                           <td>{userNames[file.user_id]}</td>
                           <td>{file.updated_at}</td>
                         </tr>
@@ -350,7 +409,11 @@ const Dashboard = () => {
                         <tr key={folder.id}>
                           <td>{folderNames[folder.id]}</td>
                           <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>{folder.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(folder.size))
+                              : binaryStorageConversion(Number(folder.size))}
+                          </td>
                           <td>{userNames[folder.user_id]}</td>
                           <td>{folder.updated_at || folder.created_at}</td>
                         </tr>
@@ -359,7 +422,11 @@ const Dashboard = () => {
                         <tr key={file.id}>
                           <td>{file.name}</td>
                           <td>--</td>
-                          <td>{file.size}</td>
+                          <td>
+                            {decimalStorage
+                              ? decimalStorageConversion(Number(file.size))
+                              : binaryStorageConversion(Number(file.size))}
+                          </td>
                           <td>{userNames[file.user_id]}</td>
                           <td>{file.updated_at}</td>
                         </tr>
@@ -386,6 +453,10 @@ const Dashboard = () => {
         folders={folders}
         folderNames={folderNames}
         userNames={userNames}
+        decimalStorage={decimalStorage}
+        setDecimalStorage={setDecimalStorage}
+        binaryStorageConversion={binaryStorageConversion}
+        decimalStorageConversion={decimalStorageConversion}
       />
       <div className="dashboard-body">
         <SideBar
