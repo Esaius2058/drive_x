@@ -107,15 +107,14 @@ export const createUser = async (
 
     if (folderError || !folder || folder.length === 0) {
       console.error("Failed to create folder:", folderError);
-      return;
+      throw folderError;
     }
 
     if (dbError || folderError) {
       dbError
         ? console.error("Database error:", dbError)
         : console.error("Database error:", folderError);
-      res.status(500).json({ message: "Error saving file metadata" });
-      return;
+      throw dbError || folderError;
     }
 
     const token = jwt.sign(newUser, jwtSecret, { expiresIn: "2h" });
@@ -174,7 +173,6 @@ export const logoutUser = async (
     if (error) {
       throw error;
     }
-
 
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
@@ -235,6 +233,33 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
+export const updateRole = async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const newRole = req.body.role;
+  const secret = req.body.secret;
+  const secretKey = process.env.ADMIN_SECRET_KEY as string;
+
+  if (secret !== secretKey) {
+    res.status(401).json({ message: "Unauthorized: Invalid secret key" });
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from("Users")
+      .update({ role: newRole })
+      .eq("id", userId);
+
+    if (error) throw error;
+
+    res.status(200).json({ message: `Updated role successfully.` });
+    return;
+  } catch (error: any) {
+    console.error("Internal server error: ", error);
+    res.status(500).json("Internal server error");
+  }
+};
+
 export const fetchUserFiles = async (
   req: Request,
   res: Response,
@@ -266,17 +291,6 @@ export const getProfile = async (
     return;
   }
 
-  const token = authHeader.split(" ")[1];
-
-  jwt.verify(token as string, jwtSecret, (err, authData) => {
-    if (err) {
-      console.log("Error verifying jwt: ", err);
-      res.status(403).json({ err });
-    } else {
-      console.log("auth data: ", authData);
-    }
-  });
-
   if (!req.user) {
     res.status(401).json({ message: "Unauthorized: No user found" });
     return;
@@ -284,6 +298,14 @@ export const getProfile = async (
   const user = req.user;
 
   try {
+    const { data: userRole, error: roleError } = await supabase
+      .from("Users")
+      .select("role")
+      .eq("id", user?.id)
+      .single();
+
+      if(roleError) throw roleError;
+
     //fetch the user files
     const fileItems = await fetchUserFiles(req, res, next);
 
@@ -334,13 +356,55 @@ export const getProfile = async (
       {} as Record<string, string>
     );
 
-    console.log("Usernames Dictionary", userNames);
-    res
-      .status(200)
-      .json({ userNames, folders, folderIds, folderNames, files, user });
+    var profile = { user, userNames, folders, folderIds, folderNames, files};
+    
+    if(userRole.role === "admin") {
+      const { fileCount, userCount, storageUsed } = await getAdminStats(
+        req,
+        res
+      );
+      const adminProfile = {
+        ...profile,
+        fileCount,
+        userCount,
+        storageUsed,
+      };
+      profile = adminProfile;
+    }
+    res.status(200).json(profile);
+    return;
   } catch (error: any) {
     console.error("Error fetching profile:", error);
     res.status(500).json({ message: "Error fetching profile" });
+  }
+};
+
+const getAdminStats = async (req: Request, res: Response):Promise<any> => {
+  try {
+    const { data: userCount, error: userCountError } = await supabase
+      .from("Users")
+      .select("*", { count: "exact" });
+
+    if (userCountError) {
+      console.error("Error fetching user count:", userCountError);
+      throw userCountError;
+    }
+
+    const { data: fileCount, error: fileCountError } = await supabase
+      .from("Files")
+      .select("*", { count: "exact" });
+
+    if (fileCountError) {
+      console.error("Error fetching file count:", fileCountError);
+      throw fileCountError;
+    }
+
+    const {data: storageUsed, error: storageError} = await supabase.rpc("get_total_storage")
+
+    return {fileCount: fileCount.length ?? 0, userCount: userCount.length ?? 0, storageUsed: Number(storageUsed) || 0};
+  } catch (error) {
+    console.error("Error fetching admin stats:", error);
+    return;
   }
 };
 
@@ -351,9 +415,9 @@ export const deleteProfile = async (
   const userId = req.user?.id;
 
   try {
-    const {error} = await supabase.auth.admin.deleteUser(userId as string);
-    
-    if(error) throw error;
+    const { error } = await supabase.auth.admin.deleteUser(userId as string);
+
+    if (error) throw error;
 
     //delete the user metadata
     const { error: dbError } = await supabase
@@ -361,11 +425,11 @@ export const deleteProfile = async (
       .delete()
       .eq("id", userId);
 
-      if(dbError) throw dbError;
+    if (dbError) throw dbError;
 
     res.status(200).json({ message: "Profile deleted successfully" });
   } catch (error) {
     console.error("Error deleting profile:", error);
     res.status(500).json({ message: "Error deleting profile" });
   }
-}
+};
