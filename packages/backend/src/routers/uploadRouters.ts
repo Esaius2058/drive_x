@@ -16,6 +16,7 @@ import {
   loginUser,
   logoutUser,
   updatePassword,
+  deleteProfile,
 } from "../controllers/userControllers";
 import {
   createFolder,
@@ -29,7 +30,6 @@ import {
   getFile,
   deleteFile,
 } from "../controllers/fileControllers";
-import { handleUpdatePassword } from "../services/userService";
 
 const router = Router();
 
@@ -76,7 +76,7 @@ router.use(verifyJWT);
 // Profile Routes
 router.get("/profile", getProfile);
 router.post("/profile/update/new-password", updatePassword);
-router.post("/profile/delete");
+router.post("/profile/delete", deleteProfile);
 
 // Folder Routes
 router.get("/folders/new-folder", newFolderForm);
@@ -92,11 +92,36 @@ router.get("/file/update:id", getUpdateForm);
 router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
 router.post("/files/delete/:id", deleteFile);
-router.post("/file/upload", upload.single('file'), uploadSingleFile);
+router.post("/file/upload", upload.single("file"), uploadSingleFile);
 router.post(
   "/files/upload",
   upload.array('files', 5),
   uploadMultipleFiles
 );
+
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    res.status(400).json({
+      error: err.code,
+      message: err.message,
+      field: err.field
+    });
+    return; // Explicit return to satisfy TypeScript
+  }
+
+  if (err instanceof Error) {
+    res.status(500).json({
+      error: 'INTERNAL_SERVER_ERROR',
+      message: err.message
+    });
+    return;
+  }
+
+  res.status(500).json({
+    error: 'UNKNOWN_ERROR',
+    message: 'Something went wrong'
+  });
+};
+router.use(errorHandler);
 
 export default router;
