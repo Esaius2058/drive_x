@@ -175,9 +175,11 @@ export const logoutUser = async (
       throw error;
     }
 
-    res.redirect("/");
+
+    res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Error logging out: ", error);
+    res.status(500).json({ message: "Internal server error. Couldn't logout" });
   }
 };
 
@@ -198,30 +200,38 @@ export const updateEmail = async (req: Request, res: Response) => {
 };
 
 export const updatePassword = async (req: Request, res: Response) => {
-  const user = await supabase
-    .from("Users")
-    .select("*")
-    .eq("email", req.user?.email);
-  const userData = user.data != null ? user.data[0] : "";
-  const email = userData.email;
-  const newPassword = req.body.newpassword;
-  const oldPassword = req.body.oldpassword;
-  const oldHashed = await bcrypt.hash(req.body.oldPassword, 10);
+  const user = req.user;
+  const email = user?.email;
+  const { oldpassword, newpassword } = req.body;
 
   try {
-    if (await bcrypt.compare(oldPassword, oldHashed)) {
-      await supabase
+    if (!oldpassword) {
+      throw new Error("Old password missing.");
+    }
+
+    if (!newpassword) {
+      throw new Error("New password missing.");
+    }
+
+    const oldHashed = await bcrypt.hash(oldpassword, 10);
+    const newHashed = await bcrypt.hash(newpassword, 10);
+
+    if (await bcrypt.compare(oldpassword, oldHashed)) {
+      const { error } = await supabase
         .from("Users")
-        .update({ password: await bcrypt.hash(newPassword, 10) })
+        .update({ password: newHashed })
         .eq("email", email);
 
-      return res
-        .status(200)
-        .json({ message: `Updated ${userData.name}'s password.` });
+      if (error) throw error;
+    } else {
+      throw new Error("Old password is incorrect");
     }
-  } catch (err: any) {
-    console.error("Internal server error: ", err);
-    res.status(500).json({ error: err.message });
+    res.status(200).json({ message: `Updated password successfully.` });
+    return;
+  } catch (error: any) {
+    console.error("Internal server error: ", error);
+    res.status(500).json("Internal server error");
+    return;
   }
 };
 
@@ -306,7 +316,7 @@ export const getProfile = async (
       return acc;
     }, {});
 
-    const folderIds = folderData.reduce((acc: any, folder:any) => {
+    const folderIds = folderData.reduce((acc: any, folder: any) => {
       acc[folder.id] = folder.id;
       return acc;
     }, {});
@@ -314,21 +324,48 @@ export const getProfile = async (
     const files = fileItems.map((file: any) => file.folder_id === null);
 
     //fetch the user's name from the database
-    const { data, error } = await supabase
-      .from("Users")
-      .select("id, name");
+    const { data, error } = await supabase.from("Users").select("id, name");
     if (error) throw error;
-    const userNames: Record<string, string> = data.reduce((acc: any, user: any) => {
-      acc[user.id] = user.name;
-      return acc;
-    }, {} as Record<string, string>);
-    
+    const userNames: Record<string, string> = data.reduce(
+      (acc: any, user: any) => {
+        acc[user.id] = user.name;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+
     console.log("Usernames Dictionary", userNames);
     res
       .status(200)
-      .json({ userNames, folders, folderIds,folderNames, files, user});
+      .json({ userNames, folders, folderIds, folderNames, files, user });
   } catch (error: any) {
     console.error("Error fetching profile:", error);
     res.status(500).json({ message: "Error fetching profile" });
   }
 };
+
+export const deleteProfile = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userId = req.user?.id;
+
+  try {
+    const {error} = await supabase.auth.admin.deleteUser(userId as string);
+    
+    if(error) throw error;
+
+    //delete the user metadata
+    const { error: dbError } = await supabase
+      .from("Users")
+      .delete()
+      .eq("id", userId);
+
+      if(dbError) throw dbError;
+
+    res.status(200).json({ message: "Profile deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting profile:", error);
+    res.status(500).json({ message: "Error deleting profile" });
+  }
+}
