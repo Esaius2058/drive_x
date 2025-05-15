@@ -17,6 +17,7 @@ import {
   logoutUser,
   updatePassword,
   deleteProfile,
+  updateRole,
 } from "../controllers/userControllers";
 import {
   createFolder,
@@ -76,6 +77,7 @@ router.use(verifyJWT);
 // Profile Routes
 router.get("/profile", getProfile);
 router.post("/profile/update/new-password", updatePassword);
+router.post("/profile/update/role", updateRole);
 router.post("/profile/delete", deleteProfile);
 
 // Folder Routes
