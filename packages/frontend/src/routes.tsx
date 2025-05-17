@@ -2,7 +2,8 @@ import App from "./App";
 import Landing from "./components/Landing";
 import AuthWrapper from "./components/AuthWrapper";
 import SignUp from "./components/SignUp";
-import Dashboard from "./components/Dashboard";
+import {Dashboard} from "./components/Dashboard";
+import AdminDashboard from "./components/AdminDashboard";
 import {ErrorPage} from "./components/404";
 
 const MainRoutes = () => {
@@ -28,6 +29,9 @@ const MainRoutes = () => {
         {
             path: "dashboard",
             element: <Dashboard />,
+        },{
+            path: "admin-dashboard",
+            element: <AdminDashboard />
         },
         {
             path: "*",
