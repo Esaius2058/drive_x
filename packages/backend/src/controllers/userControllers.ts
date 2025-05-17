@@ -300,7 +300,7 @@ export const getProfile = async (
     res.status(401).json({ message: "Unauthorized: No user found" });
     return;
   }
-  const user = req.user;
+  var user = req.user;
 
   try {
     const { data: userRole, error: roleError } = await supabase
@@ -311,7 +311,7 @@ export const getProfile = async (
 
     if (roleError) throw roleError;
 
-    //fetch the user files
+    //fetch the user's files
     const fileItems = await fetchUserFiles(req, res, next);
 
     // get unique folder IDs to avoid duplication (2n)
@@ -347,7 +347,7 @@ export const getProfile = async (
       acc[folder.id] = folder.id;
       return acc;
     }, {});
-    //get the files that do't have folder ids
+    //get the files that don't have folder ids
     const files = fileItems.map((file: any) => file.folder_id === null);
 
     //fetch the user's name from the database
@@ -361,11 +361,14 @@ export const getProfile = async (
       {} as Record<string, string>
     );
 
+    //calculate each user's total used storage
+    const usedStorage = fileItems.reduce((acc, file) => acc + file.size, 0);
+
     const role = userRole.role;
-    var profile = { user, userNames, folders, folderIds, folderNames, files , role };
+    var profile = { user, userNames, folders, folderIds, folderNames, files , role, usedStorage };
 
     if (role === "admin") {
-      const { fileCount, userCount, storageUsed } = await getAdminStats(
+      const { fileCount, userCount, storageUsed, activityLogs, allUsers, allFiles } = await getAdminStats(
         req,
         res
       );
@@ -374,6 +377,9 @@ export const getProfile = async (
         fileCount,
         userCount,
         storageUsed,
+        activityLogs,
+        allUsers,
+        allFiles,
       };
       profile = adminProfile;
     }
@@ -434,10 +440,24 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
     //get the activity logs of all the users
     const { data: activityLogs, error: activityLogsError } = await supabase
     .from("FileLogs")
-    .select("user_id, file_id, action, inserted_at");
+    .select("user_id, file_id, action, inserted_at, id");
 
     if (activityLogsError) {
       console.error("Error fetching logs:", activityLogsError);
+      throw activityLogsError;
+    }
+
+
+    //FILE MANAGEMENT
+    //get all uploaded files from the database
+    const { data: allFiles, error: allFilesError } = await supabase
+      .from("Files")
+      .select("name, size, created_at, updated_at, user_id, file_type")
+      .range(0, 24)
+      .order("updated_at", { ascending: false });
+
+    if(allFilesError){
+      console.error("Error fetching files:", allFilesError);
       throw activityLogsError;
     }
 
@@ -446,7 +466,8 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
       userCount: userCount.length ?? 0,
       storageUsed: Number(storageUsed) || 0,
       activityLogs,
-      allUsers
+      allUsers,
+      allFiles
     };
   } catch (error) {
     console.error("Error fetching admin stats:", error);
