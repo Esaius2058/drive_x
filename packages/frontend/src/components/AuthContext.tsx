@@ -12,6 +12,9 @@ export type AuthContextType = {
     email: string,
     password: string
   ) => Promise<void>;
+  isAdmin: boolean;
+  loading: boolean;
+  error: Error | null;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
