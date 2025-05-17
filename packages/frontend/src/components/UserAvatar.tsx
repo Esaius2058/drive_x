@@ -15,7 +15,7 @@ interface Notification {
 interface UserAvatarProps {
   name: string;
   email: string;
-  usedStoragePercentage: number;
+  usedStoragePercentage?: number;
   avatarUrl?: string;
   setNotification: React.Dispatch<React.SetStateAction<Notification>>;
   decimalStorage: boolean;
