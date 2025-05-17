@@ -245,10 +245,15 @@ export const updateRole = async (req: Request, res: Response) => {
   }
 
   try {
-    const { error } = await supabase
+    if (newRole !== "admin" && newRole !== "client")
+      throw new Error("Invalid role");
+
+    const { data, error } = await supabase
       .from("Users")
       .update({ role: newRole })
-      .eq("id", userId);
+      .eq("id", userId)
+      .select(); // Get the updated row back
+    console.log("Update result(updateRole):", data, error);
 
     if (error) throw error;
 
@@ -304,7 +309,7 @@ export const getProfile = async (
       .eq("id", user?.id)
       .single();
 
-      if(roleError) throw roleError;
+    if (roleError) throw roleError;
 
     //fetch the user files
     const fileItems = await fetchUserFiles(req, res, next);
@@ -356,9 +361,10 @@ export const getProfile = async (
       {} as Record<string, string>
     );
 
-    var profile = { user, userNames, folders, folderIds, folderNames, files};
-    
-    if(userRole.role === "admin") {
+    const role = userRole.role;
+    var profile = { user, userNames, folders, folderIds, folderNames, files , role };
+
+    if (role === "admin") {
       const { fileCount, userCount, storageUsed } = await getAdminStats(
         req,
         res
@@ -379,8 +385,10 @@ export const getProfile = async (
   }
 };
 
-const getAdminStats = async (req: Request, res: Response):Promise<any> => {
+const getAdminStats = async (req: Request, res: Response): Promise<any> => {
   try {
+    //OVERVIEW
+    //get the total number of users in the db
     const { data: userCount, error: userCountError } = await supabase
       .from("Users")
       .select("*", { count: "exact" });
@@ -390,6 +398,7 @@ const getAdminStats = async (req: Request, res: Response):Promise<any> => {
       throw userCountError;
     }
 
+    //get the total number of files currently uploaded in the db
     const { data: fileCount, error: fileCountError } = await supabase
       .from("Files")
       .select("*", { count: "exact" });
@@ -399,9 +408,46 @@ const getAdminStats = async (req: Request, res: Response):Promise<any> => {
       throw fileCountError;
     }
 
-    const {data: storageUsed, error: storageError} = await supabase.rpc("get_total_storage")
+    //get the total storage used in the db
+    //this is a custom function that returns the total storage used in bytes
+    const { data: storageUsed, error: storageError } = await supabase.rpc(
+      "get_total_storage"
+    );
 
-    return {fileCount: fileCount.length ?? 0, userCount: userCount.length ?? 0, storageUsed: Number(storageUsed) || 0};
+    if(storageError){
+      console.error("Error fetching storage used:", storageError);
+      throw storageError;
+    }
+
+
+    //USER MANAGEMENT
+    //get all the users and their roles from the db
+    const { data: allUsers, error: allUsersError } = await supabase
+      .from("Users")
+      .select("email, role, name, used_storage");
+
+    if (allUsersError) {
+      console.error("Error fetching all users:", allUsersError);
+      throw allUsersError;
+    }
+
+    //get the activity logs of all the users
+    const { data: activityLogs, error: activityLogsError } = await supabase
+    .from("FileLogs")
+    .select("user_id, file_id, action, inserted_at");
+
+    if (activityLogsError) {
+      console.error("Error fetching logs:", activityLogsError);
+      throw activityLogsError;
+    }
+
+    return {
+      fileCount: fileCount.length ?? 0,
+      userCount: userCount.length ?? 0,
+      storageUsed: Number(storageUsed) || 0,
+      activityLogs,
+      allUsers
+    };
   } catch (error) {
     console.error("Error fetching admin stats:", error);
     return;
