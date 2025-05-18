@@ -1,10 +1,36 @@
 import { Link } from "react-router-dom";
 import { act, useEffect, useState } from "react";
 import { DashboardNavBar } from "./NavBar";
-import SideBar from "./SideBar";
+import { SideBar } from "./SideBar";
 import { Progress } from "./Progress";
 import { NoFiles, EmptyTrash, NoShared, NoStarred } from "./404";
 import { useLocation } from "react-router-dom";
+
+const binaryStorageConversion = (bytes: number) => {
+  const kb = bytes / 1024;
+  const mb = kb / 1024;
+  const gb = mb / 1024;
+  const tb = gb / 1024;
+
+  if (tb >= 1) return `${tb.toFixed(2)} TB`;
+  if (gb >= 1) return `${gb.toFixed(2)} GB`;
+  if (mb >= 1) return `${mb.toFixed(2)} MB`;
+  if (kb >= 1) return `${kb.toFixed(2)} KB`;
+  return `${bytes} bytes`;
+};
+
+const decimalStorageConversion = (bytes: number) => {
+  const kb = bytes / 1000;
+  const mb = kb / 1000;
+  const gb = mb / 1000;
+  const tb = gb / 1000;
+
+  if (tb >= 1) return `${tb.toFixed(2)} TB`;
+  if (gb >= 1) return `${gb.toFixed(2)} GB`;
+  if (mb >= 1) return `${mb.toFixed(2)} MB`;
+  if (kb >= 1) return `${kb.toFixed(2)} KB`;
+  return `${bytes} bytes`;
+};
 
 const Dashboard = () => {
   const sidebarTabs = [
@@ -42,32 +68,6 @@ const Dashboard = () => {
     duration: 5 * 3600, //5 milliseconds
   });
   const [decimalStorage, setDecimalStorage] = useState<boolean>(true);
-
-  const binaryStorageConversion = (bytes: number) => {
-    const kb = bytes / 1024;
-    const mb = kb / 1024;
-    const gb = mb / 1024;
-    const tb = gb / 1024;
-
-    if (tb >= 1) return `${tb.toFixed(2)} TB`;
-    if (gb >= 1) return `${gb.toFixed(2)} GB`;
-    if (mb >= 1) return `${mb.toFixed(2)} MB`;
-    if (kb >= 1) return `${kb.toFixed(2)} KB`;
-    return `${bytes} bytes`;
-  };
-
-  const decimalStorageConversion = (bytes: number) => {
-    const kb = bytes / 1000;
-    const mb = kb / 1000;
-    const gb = mb / 1000;
-    const tb = gb / 1000;
-
-    if (tb >= 1) return `${tb.toFixed(2)} TB`;
-    if (gb >= 1) return `${gb.toFixed(2)} GB`;
-    if (mb >= 1) return `${mb.toFixed(2)} MB`;
-    if (kb >= 1) return `${kb.toFixed(2)} KB`;
-    return `${bytes} bytes`;
-  };
 
   const renderSection = (activeButton: SidebarTab) => {
     switch (activeButton) {
@@ -477,4 +477,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export { decimalStorageConversion, binaryStorageConversion, Dashboard };
