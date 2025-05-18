@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import {useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
-import Dashboard from "./Dashboard";
+import LoadingDashboard from "./LoadingScreen";
 
 const SignUp = () => {
   const [authType, setAuthType] = useState("sign-up");
@@ -10,9 +10,18 @@ const SignUp = () => {
   const [authIntro, setAuthIntro] = useState("Already");
   const [authCTA, setAuthCTA] = useState("Log In");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [error, setError] = useState("");
 
-  const { signup, login, user, userFiles} = useAuth();
+  const { loading, signup, login, userFiles, isAdmin, error } = useAuth();
+
+  const navigate = useNavigate();
+  const path = isAdmin ? "/admin-dashboard" : "/dashboard";
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate(`${path}`, { state: { userFiles } });
+    }
+  }, [loading, isAuthenticated, navigate, path, userFiles]);
+
   const signupForm = useRef<HTMLFormElement>(null);
   const loginForm = useRef<HTMLFormElement>(null);
   const handleAuthTypeChange = () => {
@@ -69,57 +78,73 @@ const SignUp = () => {
     setIsAuthenticated(true);
   };
 
-  const navigate = useNavigate();
+  if (loading && (signupForm.current || loginForm.current)) {
+    return <LoadingDashboard />;
+  }
 
   return (
-    <>
-      {isAuthenticated ? (
-        navigate('/dashboard', { state: { userFiles } })
-      ) : (
-        <div className="auth-page">
-          <div className="auth-form">
-            <div className="auth-div">
-              <Link to={"/"} className="cancel-btn">
-                <img src="/xmark-solid.svg" alt="cancel" />
-              </Link>
-            </div>
-            <div className="auth-div-1">
-              <h1>{authHeader}</h1>
-            </div>
-            <div className="auth-div">
-              <p>
-                {authIntro} have an account?{" "}
-                <Link to={""} onClick={handleAuthTypeChange}>
-                  {authCTA}
-                </Link>
-              </p>
-            </div>
-            {authType === "sign-up" ? (
-              <form id="signup-form" ref={signupForm} onSubmit={handleSignup}>
-                <input name="firstname" type="text" placeholder="first name" required />
-                <input name="lastname" type="text" placeholder="last name" required />
-                <input name="email" type="email" placeholder="email" required />
-                <input name="password" type="password" placeholder="password" required />
-                <button type="submit" className="primary-btn">
-                  {authHeader}
-                </button>
-              </form>
-            ) : (
-              <form id="login-form" ref={loginForm} onSubmit={handleLogin}>
-                <input name="email" type="email" placeholder="email" required />
-                <input name="password" type="password" placeholder="password" required />
-                <div className="button-div">
-                  <button className="secondary-btn">Forgot Password?</button>
-                  <button type="submit" className="primary-btn">
-                    Log In
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
+    <div className="auth-page">
+      <div className="auth-form">
+        <div className="auth-div">
+          <Link to={"/"} className="cancel-btn">
+            <img src="/xmark-solid.svg" alt="cancel" />
+          </Link>
         </div>
-      )}
-    </>
+        <div className="auth-div-1">
+          <h1>{authHeader}</h1>
+        </div>
+        <div className="auth-div">
+          <p>
+            {authIntro} have an account?{" "}
+            <Link to={""} onClick={handleAuthTypeChange}>
+              {authCTA}
+            </Link>
+          </p>
+        </div>
+        {authType === "sign-up" ? (
+          <form id="signup-form" ref={signupForm} onSubmit={handleSignup}>
+            <input
+              name="firstname"
+              type="text"
+              placeholder="first name"
+              required
+            />
+            <input
+              name="lastname"
+              type="text"
+              placeholder="last name"
+              required
+            />
+            <input name="email" type="email" placeholder="email" required />
+            <input
+              name="password"
+              type="password"
+              placeholder="password"
+              required
+            />
+            <button type="submit" className="primary-btn">
+              {authHeader}
+            </button>
+          </form>
+        ) : (
+          <form id="login-form" ref={loginForm} onSubmit={handleLogin}>
+            <input name="email" type="email" placeholder="email" required />
+            <input
+              name="password"
+              type="password"
+              placeholder="password"
+              required
+            />
+            <div className="button-div">
+              <button className="secondary-btn">Forgot Password?</button>
+              <button type="submit" className="primary-btn">
+                Log In
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
   );
 };
 
