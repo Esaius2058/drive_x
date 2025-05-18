@@ -1,14 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import passport from "passport";
 
 const prisma = new PrismaClient();
 
 export interface CustomUser {
-  id: string;
-  email: string;
-  name?: string;
-  password_hash?: string;
-  users?: CustomUser[];
+  user: {
+    id: string;
+    email: string;
+  }
 }
 
 export const handleUploadSingleFile = async (
@@ -289,4 +287,3 @@ export const handleUpdateFile = async (id: number, fileName: string) => {
   }
 };
 
-export default passport;
