@@ -25,6 +25,16 @@ interface DashboardNavbarProps {
   decimalStorageConversion: (bytes: number) => string;
 }
 
+interface AdminNavbarProps {
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  notification: Notification;
+  setNotification: React.Dispatch<React.SetStateAction<Notification>>;
+  decimalStorage: boolean;
+  setDecimalStorage: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
 const LandingNavBar = () => {
   return (
     <nav className="navbar welcome-nav">
@@ -153,4 +163,31 @@ const DashboardNavBar = ({
   );
 };
 
-export { LandingNavBar, LandingNavBarMobile, DashboardNavBar };
+const AdminNavBar = ({
+  name,
+  email,
+  avatarUrl,
+  decimalStorage,
+  setDecimalStorage,
+  notification,
+  setNotification,
+}: AdminNavbarProps) => {
+  return (
+    <nav className="navbar dashboard-nav">
+      <Link to={"/"} className="navbar-logo">
+        <img src="/cloud-solid.svg" alt="cloud-icon" />
+        <h1 className="navbar-logo-header-2">drive X</h1>
+      </Link>
+      <UserAvatar
+        name={name}
+        email={email}
+        avatarUrl={avatarUrl}
+        setNotification={setNotification}
+        decimalStorage={decimalStorage}
+        setDecimalStorage={setDecimalStorage}
+      />
+    </nav>
+  );
+}
+
+export { LandingNavBar, LandingNavBarMobile, DashboardNavBar, AdminNavBar};
