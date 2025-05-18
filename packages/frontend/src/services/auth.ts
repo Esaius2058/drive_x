@@ -13,7 +13,7 @@ export async function loginUser(email: string, password: string) {
     throw new Error(data.message || "Internal Server Error. Login failed");
 
   // Save the token
-  localStorage.setItem("token", data.token);
+  localStorage.setItem("token", data.session.access_token);
 
   return data.user;
 }
