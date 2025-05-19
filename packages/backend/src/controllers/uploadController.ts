@@ -7,11 +7,10 @@ import {
   handleGetUser,
   handleGetFile,
 } from "../services/userService";
-import jwt from "jsonwebtoken";
+import { CustomUser } from "../services/userService";
 
 export interface CustomRequest {
-  token?: string;
-  user?: any;
+  user?: CustomUser;
 }
 
 interface FileMetadata {
@@ -22,9 +21,6 @@ interface FileMetadata {
   file_type: string;
   storage_path: string;
 }
-
-const upload = multer({ storage: multer.memoryStorage() });
-const jwtSecret = process.env.JWT_SECRET_KEY as string;
 
 export const uploadForm = async (req: Request, res: Response) => {
   const userEmail = req.user?.email;
@@ -154,7 +150,7 @@ export const uploadMultipleFiles = async (
           storage_path: filePath,
           size: file.size,
           file_type: file.mimetype,
-        } satisfies FileMetadata;
+        } as FileMetadata;
       })
     );
 
@@ -189,33 +185,3 @@ export const uploadMultipleFields = (req: Request, res: Response) => {
   return res.status(200).json({ files: req.files });
 };
 
-export const getUpdateForm = async (req: Request, res: Response) => {
-  jwt.verify(req.token as string, jwtSecret, (err, authData) => {
-    if (err) {
-      console.log("Error verifying jwt: ", err);
-      res.status(403).json({ err });
-    } else {
-      console.log("auth data: ", authData);
-    }
-  });
-
-  if (req.baseUrl == "/file") {
-    const fileId = req.params;
-    const file = await handleGetFile(Number(fileId));
-    try {
-      res.render("update-file", { title: "File Update", file });
-    } catch (err: any) {
-      console.error("Internal server error: ", err);
-      res.status(500).json({ error: err.message });
-    }
-  } else {
-    const folderId = req.params;
-    const folder = await handleGetFolderDetails(Number(folderId));
-    try {
-      res.render("update-folder", { title: "Folder Update", folder });
-    } catch (err: any) {
-      console.error("Internal server error: ", err);
-      res.status(500).json({ error: err.message });
-    }
-  }
-};
