@@ -3,10 +3,20 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export interface CustomUser {
-  user: {
-    id: string;
+  id: string;
+  aud: string;
+  role: string;
+  email: string;
+  app_metadata?: {
+    provider: string;
+    providers: string[];
+  };
+  user_metadata?: {
     email: string;
-  }
+    email_verified: string;
+    phone_verified: string;
+    sub: string;
+  };
 }
 
 export const handleUploadSingleFile = async (
