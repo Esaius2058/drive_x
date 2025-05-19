@@ -4,9 +4,7 @@ import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { CustomUser } from "./types";
-import { handleUpdateName } from "../services/userService";
 
-const jwtSecret = process.env.JWT_SECRET_KEY as string;
 const alphaErr = "must contain only alphabets";
 const lengthErr = "must be between 1 and 10 characters long";
 const emailErr = "Invalid email address";
@@ -36,28 +34,42 @@ export const validateUser = [
     .withMessage("Password must contain at least one number"),
 ];
 
-export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
-  //since I'm using ejs, I'll be using the https cookies instead
+export const verifyJWT = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const bearerHeader = req.headers.authorization;
   console.log("Bearer Header: ", bearerHeader);
   const bearer = bearerHeader !== undefined ? bearerHeader?.split(" ") : "";
   const token = bearer[1]; //Get the token from Authorization header
 
-  console.log("Token: ", token);
-
   if (!token || token === "") {
-    res.status(401).json({ message: "Unauthorized: No token provided" });
-    return;
+    throw new Error("Unauthorized: No token provided");
   }
 
   try {
-    const decoded = jwt.verify(token, jwtSecret, {
-      algorithms: ["HS256"],
-    }) as unknown as CustomUser;
-    req.user = decoded;
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error) {
+      console.error("Error verifying JWT:", error);
+      throw error;
+    }
+
+    const supabaseUser = data.user;
+    req.user = {
+      id: supabaseUser.id,
+      email: supabaseUser.email,
+      role: supabaseUser.role,
+      aud: supabaseUser.aud,
+      ...supabaseUser.user_metadata,
+      ...supabaseUser.app_metadata
+    } as CustomUser;
+    console.log("New JWT user: ", req.user);
     next();
   } catch (error) {
-    res.status(401).json({ error: "Invalid token" });
+    console.error("JWT verification failed:", error);
+    res.status(401).json({ message: "Unauthorized: Invalid token" });
     return;
   }
 };
@@ -117,13 +129,21 @@ export const createUser = async (
       throw dbError || folderError;
     }
 
-    const token = jwt.sign(newUser, jwtSecret, { expiresIn: "2h" });
+    const session = newUser.session;
 
-    res.json({
-      message: `Welcome ${req.body.firstname}`,
-      user,
-      success: true,
-      token,
+    if (!session) {
+      throw new Error("Session not found, cannot sign token.");
+    }
+
+    const { error } = await supabase.auth.refreshSession({
+       refresh_token: session.refresh_token,
+    });
+
+    if(error) throw error;
+
+    res.status(200).json({
+      user: newUser.user,
+      session: newUser.session,
     });
   } catch (error: any) {
     console.error("Error signing in: ", error);
@@ -140,7 +160,7 @@ export const loginUser = async (
   const password = req.body.password;
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data: loggedUser, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
@@ -149,12 +169,19 @@ export const loginUser = async (
       throw error;
     }
 
-    const loggedUser = data.user;
-    const token = jwt.sign(loggedUser, jwtSecret, { expiresIn: "2h" });
+   const session = loggedUser.session;
+   if (!session) {
+      throw new Error("Session not found, cannot sign token.");
+    }
+   const { error: refreshError} = await supabase.auth.refreshSession({
+       refresh_token: session.refresh_token,
+    });
+
+    if(refreshError) throw refreshError;
 
     res.status(200).json({
-      user: loggedUser,
-      token,
+      user: loggedUser.user,
+      session: loggedUser.session,
     });
   } catch (error) {
     console.error("Error logging in: ", error);
@@ -184,13 +211,13 @@ export const logoutUser = async (
 export const updateEmail = async (req: Request, res: Response) => {
   const newEmail = req.body.email;
   try {
-    const updatedUser = await handleUpdateName(req.user?.name, newEmail);
-    updatedUser
-      ? res.status(200).json({
-          message: `Updated successful`,
-          update: updatedUser.name,
-        })
-      : res.status(400).json("User update failed or user not found.");
+    const { error } = await supabase
+      .from("Users")
+      .update({ email: newEmail })
+      .eq("id", req.user?.id)
+      .select();
+
+    if (error) throw error;
   } catch (err: any) {
     console.error("Internal server error: ", err);
     res.status(500).json({ error: err.message });
@@ -297,7 +324,7 @@ export const getProfile = async (
   }
 
   if (!req.user) {
-    res.status(401).json({ message: "Unauthorized: No user found" });
+    throw new Error("Unauthorized: No user found");
     return;
   }
   var user = req.user;
@@ -307,10 +334,9 @@ export const getProfile = async (
       .from("Users")
       .select("role")
       .eq("id", user?.id)
-      .single();
+      .maybeSingle();
 
     if (roleError) throw roleError;
-
     //fetch the user's files
     const fileItems = await fetchUserFiles(req, res, next);
 
@@ -334,8 +360,7 @@ export const getProfile = async (
       .eq("user_id", req.user.id);
     if (folderError) {
       console.error("Error fetching folder names:", folderError);
-      res.status(500).json({ message: "Error fetching folder names" });
-      return;
+      throw folderError;
     }
     //map the folder names to their ids by creating a dictionary of folderNames
     const folderNames = folderData.reduce((acc: any, folder: any) => {
@@ -364,14 +389,27 @@ export const getProfile = async (
     //calculate each user's total used storage
     const usedStorage = fileItems.reduce((acc, file) => acc + file.size, 0);
 
-    const role = userRole.role;
-    var profile = { user, userNames, folders, folderIds, folderNames, files , role, usedStorage };
+    const role = userRole?.role;
+    var profile = {
+      user,
+      userNames,
+      folders,
+      folderIds,
+      folderNames,
+      files,
+      role,
+      usedStorage,
+    };
 
     if (role === "admin") {
-      const { fileCount, userCount, storageUsed, activityLogs, allUsers, allFiles } = await getAdminStats(
-        req,
-        res
-      );
+      const {
+        fileCount,
+        userCount,
+        storageUsed,
+        activityLogs,
+        allUsers,
+        allFiles,
+      } = await getAdminStats(req, res);
       const adminProfile = {
         ...profile,
         fileCount,
@@ -420,11 +458,10 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
       "get_total_storage"
     );
 
-    if(storageError){
+    if (storageError) {
       console.error("Error fetching storage used:", storageError);
       throw storageError;
     }
-
 
     //USER MANAGEMENT
     //get all the users and their roles from the db
@@ -439,14 +476,13 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
 
     //get the activity logs of all the users
     const { data: activityLogs, error: activityLogsError } = await supabase
-    .from("FileLogs")
-    .select("user_id, file_id, action, inserted_at, id");
+      .from("FileLogs")
+      .select("user_id, file_id, action, inserted_at, id");
 
     if (activityLogsError) {
       console.error("Error fetching logs:", activityLogsError);
       throw activityLogsError;
     }
-
 
     //FILE MANAGEMENT
     //get all uploaded files from the database
@@ -456,7 +492,7 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
       .range(0, 24)
       .order("updated_at", { ascending: false });
 
-    if(allFilesError){
+    if (allFilesError) {
       console.error("Error fetching files:", allFilesError);
       throw activityLogsError;
     }
@@ -467,7 +503,7 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
       storageUsed: Number(storageUsed) || 0,
       activityLogs,
       allUsers,
-      allFiles
+      allFiles,
     };
   } catch (error) {
     console.error("Error fetching admin stats:", error);
