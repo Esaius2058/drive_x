@@ -5,7 +5,6 @@ import multer, {MulterError} from "multer";
 import {
   uploadSingleFile,
   uploadMultipleFiles,
-  getUpdateForm,
   uploadForm,
 } from "../controllers/uploadController";
 import {
@@ -84,13 +83,11 @@ router.post("/profile/delete", deleteProfile);
 router.get("/folders/new-folder", newFolderForm);
 router.get("/folders", getFolders);
 router.get("/folders/:id", getFolderDetails);
-router.get("/folders/update/:id", getUpdateForm);
 router.post("/folders/delete/:id", deleteFolder);
 router.post("/folders/new-folder", createFolder);
 
 //File Routes
 router.get("/files/upload", uploadForm);
-router.get("/file/update:id", getUpdateForm);
 router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
 router.post("/files/delete/:id", deleteFile);
