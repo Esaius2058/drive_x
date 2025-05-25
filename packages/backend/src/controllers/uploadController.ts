@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction, json } from "express";
 import { supabase } from "../utils/supabaseClient";
-import multer from "multer";
 import sanitizeFilename from "sanitize-filename";
 import {
   handleGetFolderDetails,
@@ -13,13 +12,15 @@ export interface CustomRequest {
   user?: CustomUser;
 }
 
-interface FileMetadata {
-  user_id?: string;
-  folder_id: string | null;
+export interface FileMetadata {
+  id: string;
   name: string;
-  size: number;
-  file_type: string;
-  storage_path: string;
+  bucket_id: string;
+  metadata: Object | null;
+  created_at: string;
+  updated_at: string;
+  last_accessed_at: null;
+  mimetype?: string;
 }
 
 export const uploadForm = async (req: Request, res: Response) => {
@@ -63,33 +64,40 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
     const file = req.file;
     console.log("File:", file);
     const safeName = sanitizeFilename(file.originalname);
-    const filePath = `user-${user?.id}/${Date.now()}-${safeName}`;
-    const { folderid } = req.body;
+    const filePath = `${user?.id}/${Date.now()}-${safeName}`;
 
     //upload to supabase storage
-    const { error: uploadError } = await supabase.storage
+    const { data, error: uploadError } = await supabase.storage
       .from("user-files")
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
         upsert: false, // prevent overwrites
       });
 
-    if (uploadError) throw uploadError;
-
-    const fileMetadata: FileMetadata = {
-      user_id: userId,
-      folder_id: folderid || null,
-      name: safeName,
-      size: file.size,
-      file_type: file.mimetype,
-      storage_path: filePath,
+    const newUploadError = {
+      ...uploadError,
+      name: "Error from Supabase Storage",
     };
-    // Insert metadata into the database
-    const { error: dbError } = await supabase
-      .from("Files")
-      .insert([fileMetadata]);
+    if (uploadError) throw newUploadError;
 
-    if (dbError) throw dbError;
+    // Insert metadata into the database
+    const { error: dbError } = await supabase.from("file_metadata").insert([
+      {
+        id: data.id,
+        user_id: userId,
+        name: file.filename,
+        type: file.mimetype,
+        storage_path: data.path,
+        size: file.size,
+      },
+    ]);
+
+    const newDbError = {
+      ...dbError,
+      message: "Error from Database",
+    };
+
+    if (dbError) throw newDbError;
 
     const { publicUrl } = supabase.storage
       .from("user-files")
@@ -150,7 +158,7 @@ export const uploadMultipleFiles = async (
           storage_path: filePath,
           size: file.size,
           file_type: file.mimetype,
-        } as FileMetadata;
+        };
       })
     );
 
@@ -184,4 +192,3 @@ export const uploadMultipleFields = (req: Request, res: Response) => {
   if (!req.files) return res.status(400).json({ message: "No files uploaded" });
   return res.status(200).json({ files: req.files });
 };
-
