@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "./AuthContext";
 import { useLocation } from "react-router-dom";
 import { AdminNavBar } from "./NavBar";
 import { AdminSideBar } from "./SideBar";
@@ -78,8 +79,8 @@ const AdminDashboard = () => {
 
   const location = useLocation();
   const { userFiles } = location.state || {};
+  const { user } = useAuth();
   const {
-    user,
     userNames,
     userCount,
     fileCount,
@@ -104,7 +105,7 @@ const AdminDashboard = () => {
           <div className="dashboard-subsection">
             <h3>Users</h3>
             <UsersTable
-              user={user}
+              user={ user }
               allUsers={allUsers}
               userNames={userNames}
               decimalStorage={decimalStorage}
