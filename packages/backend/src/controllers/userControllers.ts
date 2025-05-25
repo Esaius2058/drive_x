@@ -1,7 +1,7 @@
 import { supabase } from "../utils/supabaseClient";
+import { FileObject } from "@supabase/storage-js";
 import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { CustomUser } from "./types";
 
@@ -63,7 +63,7 @@ export const verifyJWT = async (
       role: supabaseUser.role,
       aud: supabaseUser.aud,
       ...supabaseUser.user_metadata,
-      ...supabaseUser.app_metadata
+      ...supabaseUser.app_metadata,
     } as CustomUser;
     console.log("New JWT user: ", req.user);
     next();
@@ -136,10 +136,10 @@ export const createUser = async (
     }
 
     const { error } = await supabase.auth.refreshSession({
-       refresh_token: session.refresh_token,
+      refresh_token: session.refresh_token,
     });
 
-    if(error) throw error;
+    if (error) throw error;
 
     res.status(200).json({
       user: newUser.user,
@@ -169,15 +169,16 @@ export const loginUser = async (
       throw error;
     }
 
-   const session = loggedUser.session;
-   if (!session) {
+    const session = loggedUser.session;
+    console.log("Session: ", session);
+    if (!session) {
       throw new Error("Session not found, cannot sign token.");
     }
-   const { error: refreshError} = await supabase.auth.refreshSession({
-       refresh_token: session.refresh_token,
+    const { error: refreshError } = await supabase.auth.refreshSession({
+      refresh_token: session.refresh_token,
     });
 
-    if(refreshError) throw refreshError;
+    if (refreshError) throw refreshError;
 
     res.status(200).json({
       user: loggedUser.user,
@@ -300,16 +301,17 @@ export const fetchUserFiles = async (
   const userId = req.user?.id;
   console.log("User in request(fetchUserFiles): ", req.user);
 
-  const { data, error } = await supabase
-    .from("Files")
-    .select("*")
-    .eq("user_id", userId);
+  const { data, error } = await supabase.storage
+    .from("user-files")
+    .list(userId);
 
   if (error) {
     throw error;
   }
 
-  return data;
+  const files: FileObject[] = data;
+  console.log("Files in Bucket: ", files);
+  return files;
 };
 
 export const getProfile = async (
@@ -325,8 +327,8 @@ export const getProfile = async (
 
   if (!req.user) {
     throw new Error("Unauthorized: No user found");
-    return;
   }
+
   var user = req.user;
 
   try {
@@ -338,65 +340,41 @@ export const getProfile = async (
 
     if (roleError) throw roleError;
     //fetch the user's files
-    const fileItems = await fetchUserFiles(req, res, next);
+    var files = await fetchUserFiles(req, res, next);
 
-    // get unique folder IDs to avoid duplication (2n)
-    const uniqueFolderIds = [
-      ...new Set(
-        fileItems.map((item) => item.folder_id).filter((id) => id != null)
-      ),
-    ];
+    const { data: userFiles, error: userFilesError } = await supabase
+      .from("file_metadata")
+      .select("id, name, size, updated_at, user_id, file_type")
+      .range(0, 24)
+      .order("updated_at", { ascending: false });
 
-    // map each folder ID to its files
-    const folders = uniqueFolderIds.map((folderId) => ({
-      folderId,
-      files: fileItems.filter((file) => file.folder_id === folderId),
-    }));
-
-    //fetch the user's folders
-    const { data: folderData, error: folderError } = await supabase
-      .from("Folders")
-      .select("*")
-      .eq("user_id", req.user.id);
-    if (folderError) {
-      console.error("Error fetching folder names:", folderError);
-      throw folderError;
-    }
-    //map the folder names to their ids by creating a dictionary of folderNames
-    const folderNames = folderData.reduce((acc: any, folder: any) => {
-      acc[folder.id] = folder.name;
-      return acc;
-    }, {});
-
-    const folderIds = folderData.reduce((acc: any, folder: any) => {
-      acc[folder.id] = folder.id;
-      return acc;
-    }, {});
-    //get the files that don't have folder ids
-    const files = fileItems.map((file: any) => file.folder_id === null);
-
-    //fetch the user's name from the database
-    const { data, error } = await supabase.from("Users").select("id, name");
-    if (error) throw error;
-    const userNames: Record<string, string> = data.reduce(
-      (acc: any, user: any) => {
-        acc[user.id] = user.name;
-        return acc;
-      },
-      {} as Record<string, string>
+    //fetch size from custom metadata
+    const { data: usedStorage, error: storageError } = await supabase.rpc(
+      "get_user_storage"
     );
+    console.log(usedStorage);
 
-    //calculate each user's total used storage
-    const usedStorage = fileItems.reduce((acc, file) => acc + file.size, 0);
+    if (storageError) throw storageError;
+
+    const fileOwners = files.map((file) => file.owner);
+    console.log("File Owners: ", fileOwners);
+    //fetch the user's name from the database
+    let { data, error } = await supabase
+      .from("Users")
+      .select("id, name")
+      .in("id", fileOwners);
+    console.log("Usernames: ", data);
+
+    const userNames = data?.reduce((acc, user) => {
+      acc[user.id] = user.name;
+      return acc;
+    }, {} as Record<string | number, string | null>);
+    if (error) throw error;
 
     const role = userRole?.role;
     var profile = {
-      user,
       userNames,
-      folders,
-      folderIds,
-      folderNames,
-      files,
+      files: userFiles,
       role,
       usedStorage,
     };
@@ -444,7 +422,7 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
 
     //get the total number of files currently uploaded in the db
     const { data: fileCount, error: fileCountError } = await supabase
-      .from("Files")
+      .from("file_metadata")
       .select("*", { count: "exact" });
 
     if (fileCountError) {
@@ -455,7 +433,7 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
     //get the total storage used in the db
     //this is a custom function that returns the total storage used in bytes
     const { data: storageUsed, error: storageError } = await supabase.rpc(
-      "get_total_storage"
+      "get_total_used_storage"
     );
 
     if (storageError) {
@@ -487,7 +465,7 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
     //FILE MANAGEMENT
     //get all uploaded files from the database
     const { data: allFiles, error: allFilesError } = await supabase
-      .from("Files")
+      .from("file_metadata")
       .select("name, size, created_at, updated_at, user_id, file_type")
       .range(0, 24)
       .order("updated_at", { ascending: false });
@@ -500,7 +478,7 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
     return {
       fileCount: fileCount.length ?? 0,
       userCount: userCount.length ?? 0,
-      storageUsed: Number(storageUsed) || 0,
+      storageUsed: storageUsed.get_total_used_storage,
       activityLogs,
       allUsers,
       allFiles,
