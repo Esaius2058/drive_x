@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import React, { createContext, useContext } from "react";
 
 export type AuthContextType = {
   user: any;
@@ -15,6 +15,7 @@ export type AuthContextType = {
   isAdmin: boolean;
   loading: boolean;
   error: Error | null;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
