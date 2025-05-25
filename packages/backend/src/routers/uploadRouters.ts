@@ -1,7 +1,13 @@
-import { Router, Response, Request, application, ErrorRequestHandler } from "express";
+import {
+  Router,
+  Response,
+  Request,
+  application,
+  ErrorRequestHandler,
+} from "express";
 import fs from "fs";
 import path from "path";
-import multer, {MulterError} from "multer";
+import multer, { FileFilterCallback, MulterError } from "multer";
 import {
   uploadSingleFile,
   uploadMultipleFiles,
@@ -9,7 +15,6 @@ import {
 } from "../controllers/uploadController";
 import {
   verifyJWT,
-  validateUser,
   createUser,
   getProfile,
   loginUser,
@@ -33,7 +38,7 @@ import {
 
 const router = Router();
 
-const uploadDir = path.resolve(__dirname, "../uploads");
+const uploadDir = path.resolve(__dirname, "../user-files");
 // Ensure the uploads directory exists
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -51,10 +56,26 @@ const upload = multer({
       cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
     },
   }),
+  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/svg",
+      "application/pdf",
+      "text/plain",
+      "application/x-sh",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    }else{
+      cb(new Error("File type is not allowed!") as any, false);
+    }
+  },
   limits: {
     fileSize: 15 * 1024 * 1024, // 15MB
     files: 5, // Optional: limit number of files
-  }
+  },
 });
 
 router.get("/", (req: Request, res: Response) => {
@@ -92,33 +113,29 @@ router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
 router.post("/files/delete/:id", deleteFile);
 router.post("/file/upload", upload.single("file"), uploadSingleFile);
-router.post(
-  "/files/upload",
-  upload.array('files', 5),
-  uploadMultipleFiles
-);
+router.post("/files/upload", upload.array("files", 5), uploadMultipleFiles);
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
+  if (err instanceof MulterError) {
     res.status(400).json({
       error: err.code,
       message: err.message,
-      field: err.field
+      field: err.field,
     });
     return; // Explicit return to satisfy TypeScript
   }
 
   if (err instanceof Error) {
     res.status(500).json({
-      error: 'INTERNAL_SERVER_ERROR',
-      message: err.message
+      error: "INTERNAL_SERVER_ERROR",
+      message: err.message,
     });
     return;
   }
 
   res.status(500).json({
-    error: 'UNKNOWN_ERROR',
-    message: 'Something went wrong'
+    error: "UNKNOWN_ERROR",
+    message: "Something went wrong",
   });
 };
 router.use(errorHandler);
