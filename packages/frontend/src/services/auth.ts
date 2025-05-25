@@ -43,6 +43,40 @@ export async function signUpUser(
   return data.user;
 }
 
+export async function fetchUserProfile() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("Unauthorized! No token provided.");
+  }
+
+  try {
+    const res = await fetch("http://localhost:3000/api/profile", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch user data");
+    }
+
+    const data = await res.json();
+
+    if (!data) {
+      throw new Error("No data received from server");
+    }
+
+    console.log("User Files(fetchUserProfile)", data);
+    return data;
+  } catch (err) {
+    console.error("Error fetching user files:", err);
+    throw err;
+  }
+}
+
 export async function deleteUserProfile() {
   const token = localStorage.getItem("token");
   const res = await fetch("http://localhost:3000/api/profile/delete", {
@@ -59,4 +93,28 @@ export async function deleteUserProfile() {
     throw new Error(data.message || "Internal Server Error. Delete failed");
 
   return data;
+}
+
+export async function logoutUser(){
+  const token = localStorage.getItem("token");
+
+  try{
+    const res = await fetch("http://localhost:3000/api/log-out", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok)
+    throw new Error(data.message || "Internal Server Error. Logout failed");
+
+  return data;
+  }catch(error){
+    console.error("Logout Failed ", error);
+    throw error;
+  }
 }
