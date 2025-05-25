@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loginUser, signUpUser } from "../services/auth";
+import { loginUser, signUpUser, fetchUserProfile, logoutUser } from "../services/auth";
 import { AuthContext } from "./AuthContext";
 
 interface UserFiles {
@@ -19,49 +19,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userFiles, setUserFiles] = useState<UserFiles>({});
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchUserFiles = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("Unauthorized! No token provided.");
-        }
+  async function getProfile() {
+    try {
+      setLoading(true); // Set loading to true at start
 
-        const res = await fetch("http://localhost:3000/api/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const userData = await fetchUserProfile();
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-
-        const data = await res.json();
-
-        setUserFiles(data);
-        console.log("User Files(AuthProvider)", data);
-
-        if (data.role == "admin") {
-          setIsAdmin(true);
-          console.log("Admin logged in");
-        }
-
-        console.log("Loading State:", loading);
-        return data;
-      } catch (err) {
-        setError(err as Error);
-        console.error("Error fetching user files:", err);
-      } finally {
-        setLoading(false);
-        console.log("Loading State:", loading);
+      // Handle case where userData is undefined (fetch failed)
+      if (!userData) {
+        throw new Error("Failed to load user profile");
       }
-    };
 
-    fetchUserFiles();
-  }, []);
+      // Process user data
+      if (userData.files) {
+        setUserFiles(userData);
+      }
+
+      if (userData.role === "admin") {
+        setIsAdmin(true);
+        console.log("Admin logged in");
+      }
+    } catch (error) {
+      console.error("Error in getProfile:", error);
+      // You might want to handle errors here (e.g., show error message to user)
+    } finally {
+      setLoading(false); // Ensure loading is always set to false
+    }
+  }
 
   async function signup(
     firstname: string,
@@ -76,25 +60,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(storedToken);
   }
 
-  async function login(email: string, password: string) {
+ async function login(email: string, password: string) {
+  try {
+    setLoading(true); 
+    // authenticate user with the server
     const user = await loginUser(email, password);
-    const storedToken = localStorage.getItem("token");
-    console.log("Logged User(login):", user);
+    if (!user) {
+      throw new Error("Login failed: No user data returned");
+    }
 
+    // retrieve and validate token
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
+      throw new Error("No authentication token found");
+    }
+
+    // update client-side state
     setUser(user);
     setToken(storedToken);
-    console.log("Token", token);
-  }
+    console.log("User logged in:", user); // Single consolidated log
 
-  function logout() {
+    // fetch and set user profile
+    await getProfile();
+
+  } catch (error) {
+    console.error("Login error:", error);
+    
+    // clear state on failure to avoid inconsistencies
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("token"); // ensure no stale token remains
+  } finally {
+    setLoading(false); // ensure loading state is reset
+  }
+}
+
+  async function logout() {
+  try {
+    await logoutUser(); // First attempt to logout on the server
+    
+    // Clear client-side state
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
+    setUserFiles({});
+    
+    // Optional: You might want to redirect or perform other cleanup
+    console.log("Logout successful");
+  } catch (error) {
+    console.error("Logout failed:", error);
+    
+    // Even if server logout fails, we can still clear local state
+    localStorage.removeItem("token");
+    setUser(null);
+    setToken(null);
+    setUserFiles({});
+    
+    // Optional: Show error message to user
+    setError({name: "Internal Server Error", message: "Failed to logout properly, but local session was cleared"});
   }
+}
 
   return (
     <AuthContext.Provider
-      value={{ loading, error, user, token, userFiles, isAdmin, signup, login, logout }}
+      value={{
+        loading,
+        setLoading,
+        error,
+        user,
+        token,
+        userFiles,
+        isAdmin,
+        signup,
+        login,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
