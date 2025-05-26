@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction, json } from "express";
 import { supabase } from "../utils/supabaseClient";
 import sanitizeFilename from "sanitize-filename";
+import fs from "fs/promises";
 import {
   handleGetFolderDetails,
   handleGetUser,
@@ -66,10 +67,13 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
     const safeName = sanitizeFilename(file.originalname);
     const filePath = `${user?.id}/${Date.now()}-${safeName}`;
 
+    //read file from disk
+    const buffer = await fs.readFile(file.path);
+
     //upload to supabase storage
     const { data, error: uploadError } = await supabase.storage
       .from("user-files")
-      .upload(filePath, file.buffer, {
+      .upload(filePath, buffer, {
         contentType: file.mimetype,
         upsert: false, // prevent overwrites
       });
