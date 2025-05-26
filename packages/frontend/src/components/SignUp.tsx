@@ -9,18 +9,19 @@ const SignUp = () => {
   const [authHeader, setAuthHeader] = useState("Sign Up");
   const [authIntro, setAuthIntro] = useState("Already");
   const [authCTA, setAuthCTA] = useState("Log In");
+  const [initializedAuth, setInitializedAuth] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const { loading, signup, login, userFiles, isAdmin, error } = useAuth();
+  const { loading, setLoading, signup, login, userFiles, isAdmin } = useAuth();
 
   const navigate = useNavigate();
   const path = isAdmin ? "/admin-dashboard" : "/dashboard";
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
+    if (loading === false && isAuthenticated) {
       navigate(`${path}`, { state: { userFiles } });
     }
-  }, [loading, isAuthenticated, navigate, path, userFiles]);
+  }, [loading, isAuthenticated]);
 
   const signupForm = useRef<HTMLFormElement>(null);
   const loginForm = useRef<HTMLFormElement>(null);
@@ -41,6 +42,7 @@ const SignUp = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setInitializedAuth(true);
     const form = signupForm.current;
     if (!form) return;
 
@@ -55,11 +57,16 @@ const SignUp = () => {
     await signup(firstName, lastName, email, password);
 
     setIsAuthenticated(true);
+    setTimeout(() => {
+      setInitializedAuth(false);
+      setLoading(false);
+    }, 3000);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setInitializedAuth(true);
     const form = loginForm.current;
     if (!form) {
       console.warn("loginForm ref is null");
@@ -76,9 +83,14 @@ const SignUp = () => {
     //handle loading state
     //handle error state
     setIsAuthenticated(true);
+    setTimeout(() => {
+      setInitializedAuth(false);
+      setLoading(false);
+    }, 3000);
   };
 
-  if (loading && (signupForm.current || loginForm.current)) {
+  if (loading && initializedAuth) {
+    console.log("Loading State(SignUp):", loading);
     return <LoadingDashboard />;
   }
 
@@ -138,7 +150,7 @@ const SignUp = () => {
             <div className="button-div">
               <button className="secondary-btn">Forgot Password?</button>
               <button type="submit" className="primary-btn">
-                Log In
+                {authHeader}
               </button>
             </div>
           </form>
