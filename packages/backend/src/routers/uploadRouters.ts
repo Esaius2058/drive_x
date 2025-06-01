@@ -11,7 +11,6 @@ import multer, { FileFilterCallback, MulterError } from "multer";
 import {
   uploadSingleFile,
   uploadMultipleFiles,
-  uploadForm,
 } from "../controllers/uploadController";
 import {
   verifyJWT,
@@ -53,7 +52,7 @@ const upload = multer({
       // Generate unique filename
       const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
       const ext = path.extname(file.originalname);
-      cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+      cb(null, `${file.originalname}-${uniqueSuffix}${ext}`);
     },
   }),
   fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
@@ -108,7 +107,6 @@ router.post("/folders/delete/:id", deleteFolder);
 router.post("/folders/new-folder", createFolder);
 
 //File Routes
-router.get("/files/upload", uploadForm);
 router.get("/file/:id", getFile);
 router.post("/file/update:id", updateFile);
 router.post("/files/delete/:id", deleteFile);
