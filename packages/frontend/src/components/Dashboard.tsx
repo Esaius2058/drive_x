@@ -46,7 +46,7 @@ const Dashboard = () => {
   interface Notification {
     message: string;
     type?: "success" | "error" | "warning" | "info";
-    duration?: number; // milliseconds
+    description?: string; // milliseconds
   }
 
   const location = useLocation();
@@ -64,11 +64,7 @@ const Dashboard = () => {
   const [storage, setStorage] = useState<string>("1 GB");
   const [usedStorage, setUsedStorage] = useState<string>("0 KB");
   const [usedStoragePercentage, setUsedStoragePercentage] = useState<number>(0);
-  const [notification, setNotification] = useState<Notification>({
-    message: "",
-    type: "success",
-    duration: 5 * 3600, //5 milliseconds
-  });
+  const [notification, setNotification] = useState<Notification | null>(null);
   const [decimalStorage, setDecimalStorage] = useState<boolean>(true);
 
   useEffect(() => {
@@ -87,7 +83,31 @@ const Dashboard = () => {
     );
 
     setUsedStoragePercentage(usedStoragePercentageValue);
-  }, [totalStorageUsed, decimalStorage]);
+
+    if (notification) {
+      const timeout = setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+
+      return () => clearTimeout(timeout); // Clean up on unmount or change
+    }
+  }, [totalStorageUsed, decimalStorage, notification]);
+
+  const renderNotification = (notification: Notification) => {
+    return (
+      <div className={`toast-notification ${notification.type}`}>
+        <p className="toast-title">{notification.message}</p>
+        <p>{notification.description}</p>
+      </div>
+    );
+  };
+
+  const convertToLocaleString = (raw: string): string => {
+    const date = new Date(raw);
+
+    const formatted = date.toLocaleString();
+    return formatted;
+  }
 
   const renderSection = (activeButton: SidebarTab) => {
     switch (activeButton) {
@@ -148,7 +168,7 @@ const Dashboard = () => {
                               ? decimalStorageConversion(Number(file.size))
                               : binaryStorageConversion(Number(file.size))}
                           </td>
-                          <td>{file.updated_at}</td>
+                          <td>{convertToLocaleString(file.updated_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -214,7 +234,7 @@ const Dashboard = () => {
                               ? decimalStorageConversion(Number(file.size))
                               : binaryStorageConversion(Number(file.size))}
                           </td>
-                          <td>{file.updated_at}</td>
+                          <td>{convertToLocaleString(file.updated_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -280,7 +300,7 @@ const Dashboard = () => {
                               ? decimalStorageConversion(Number(file.size))
                               : binaryStorageConversion(Number(file.size))}
                           </td>
-                          <td>{file.updated_at}</td>
+                          <td>{convertToLocaleString(file.updated_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -358,7 +378,7 @@ const Dashboard = () => {
                               ? decimalStorageConversion(Number(file.size))
                               : binaryStorageConversion(Number(file.size))}
                           </td>
-                          <td>{file.updated_at}</td>
+                          <td>{convertToLocaleString(file.updated_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -425,7 +445,7 @@ const Dashboard = () => {
                               ? decimalStorageConversion(Number(file.size))
                               : binaryStorageConversion(Number(file.size))}
                           </td>
-                          <td>{file.updated_at}</td>
+                          <td>{convertToLocaleString(file.updated_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -439,6 +459,7 @@ const Dashboard = () => {
   };
   return (
     <div className="dashboard-page">
+      {notification && renderNotification(notification)}
       <DashboardNavBar
         name={name}
         email={email}
