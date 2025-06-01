@@ -19,25 +19,25 @@ const Landing = () => {
             </div>
           </div>
         </div>
-        <img src="" alt="drive-x" />
+        <img src="/images/drive_x.png" alt="drive-x" />
       </section>
       <section className="landing-features" id="landing-features">
         <div className="feature">
-          <img src="" alt="encryption" />
+          <img src="/images/e2e_encryption.png" alt="encryption" />
           <div className="feature-description">
             <h1>End to End Encryption</h1>
             <button className="tertiary-btn">Read More</button>
           </div>
         </div>
         <div className="feature">
-          <img src="" alt="uploads" />
+          <img src="/images/fast_uploads.png" alt="uploads" />
           <div className="feature-description">
             <h1>Fast Uploads</h1>
             <button className="tertiary-btn">Read More</button>
           </div>
         </div>
         <div className="feature">
-          <img src="" alt="folders" />
+          <img src="/images/smart_folders.png" alt="folders" />
           <div className="feature-description">
             <h1>Smart Folders</h1>
             <button className="tertiary-btn">Read More</button>
@@ -48,9 +48,11 @@ const Landing = () => {
         <div className="pivot-wrapper">
           <h1>Sign Up Today</h1>
           <div className="button-div">
-            <button className="tertiary-btn">
-              <Link to={""}>Learn More</Link>
+            <Link to={"/about"}>
+            <button className="secondary-btn">
+              Learn More
             </button>
+            </Link>
             <Link to={"/auth/signup"}>
               <button className="primary-btn">Get Started</button>
             </Link>
