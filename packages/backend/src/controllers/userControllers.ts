@@ -301,16 +301,19 @@ export const fetchUserFiles = async (
   const userId = req.user?.id;
   console.log("User in request(fetchUserFiles): ", req.user);
 
-  const { data, error } = await supabase.storage
-    .from("user-files")
-    .list(userId);
+  const { data, error } = await supabase
+    .from("file_metadata")
+    .select("id, name, size, updated_at, user_id, type")
+    .eq("user_id", userId)
+    .range(0, 24)
+    .order("updated_at", { ascending: false });
 
   if (error) {
     throw error;
   }
 
-  const files: FileObject[] = data;
-  console.log("Files in Bucket: ", files);
+  const files = data;
+  console.log("Files: ", files);
   return files;
 };
 
@@ -340,13 +343,7 @@ export const getProfile = async (
 
     if (roleError) throw roleError;
     //fetch the user's files
-    var files = await fetchUserFiles(req, res, next);
-
-    const { data: userFiles, error: userFilesError } = await supabase
-      .from("file_metadata")
-      .select("id, name, size, updated_at, user_id, file_type")
-      .range(0, 24)
-      .order("updated_at", { ascending: false });
+    const files = await fetchUserFiles(req, res, next);
 
     //fetch size from custom metadata
     const { data: usedStorage, error: storageError } = await supabase.rpc(
@@ -356,13 +353,10 @@ export const getProfile = async (
 
     if (storageError) throw storageError;
 
-    const fileOwners = files.map((file) => file.owner);
-    console.log("File Owners: ", fileOwners);
     //fetch the user's name from the database
     let { data, error } = await supabase
       .from("Users")
-      .select("id, name")
-      .in("id", fileOwners);
+      .select("id, name");
     console.log("Usernames: ", data);
 
     const userNames = data?.reduce((acc, user) => {
@@ -374,7 +368,7 @@ export const getProfile = async (
     const role = userRole?.role;
     var profile = {
       userNames,
-      files: userFiles,
+      files,
       role,
       usedStorage,
     };
