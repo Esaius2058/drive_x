@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+/*import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -28,15 +28,14 @@ export const handleUploadSingleFile = async (
   path: string
 ) => {
   try {
-    await prisma.file.create({
-      data: {
+    await prisma.fileMetadata.create({
         name: fileName,
         size: size,
         userId: userId,
-        fileType: fileType,
+        type: fileType,
         path: path,
         folderId: folderId,
-      },
+    
     });
   } catch (err: any) {
     console.error("Error uploading file: ", err);
@@ -58,7 +57,7 @@ export const handleUploadMultipleFiles = async (
       folderId: folderId,
     }));
 
-    await prisma.file.createMany({ data: fileData });
+    await prisma.fileMetadata.createMany({ data: fileData });
   } catch (err: any) {
     console.error("Error uploading files:", err);
   }
@@ -194,10 +193,10 @@ passport.deserializeUser(async (id: number, done) => {
     done(error);
   }
 });*/
-
+/*
 export const handleGetFile = async (id: number) => {
   try {
-    return await prisma.file.findUnique({
+    return await prisma.fileMetadata.findUnique({
       where: {
         id,
       },
@@ -234,8 +233,6 @@ export const handleGetFolders = async (id: number) => {
       where: { userId: id },
       include: {
         parentFolder: true,
-        subFolders: true,
-        file: true,
       },
     });
   } catch (err: any) {
@@ -296,4 +293,4 @@ export const handleUpdateFile = async (id: number, fileName: string) => {
     console.error("Error updating file: ");
   }
 };
-
+*/
