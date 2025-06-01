@@ -5,7 +5,7 @@ import { useState } from "react";
 interface Notification {
   message: string;
   type?: "success" | "error" | "warning" | "info";
-  duration?: number; // milliseconds
+  description?: string; 
 }
 
 interface DashboardNavbarProps {
@@ -13,11 +13,9 @@ interface DashboardNavbarProps {
   email: string;
   usedStoragePercentage: number;
   avatarUrl?: string;
-  notification: Notification;
-  setNotification: React.Dispatch<React.SetStateAction<Notification>>;
+  notification: Notification | null;
+  setNotification: React.Dispatch<React.SetStateAction<Notification | null>>;
   files: any;
-  folders: any;
-  folderNames: any;
   userNames: any;
   decimalStorage: boolean;
   setDecimalStorage: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,8 +27,8 @@ interface AdminNavbarProps {
   name: string;
   email: string;
   avatarUrl?: string;
-  notification: Notification;
-  setNotification: React.Dispatch<React.SetStateAction<Notification>>;
+  notification: Notification | null;
+  setNotification: React.Dispatch<React.SetStateAction<Notification | null>>;
   decimalStorage: boolean;
   setDecimalStorage: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -39,7 +37,7 @@ const LandingNavBar = () => {
   return (
     <nav className="navbar welcome-nav">
       <Link to={"/"} className="navbar-logo">
-        <img src="./cloud-white.svg" alt="cloud-icon" />
+        <img src="/icons/cloud-white.svg" alt="cloud-icon" />
         <h1 className="navbar-logo-header-1">drive X</h1>
       </Link>
       <div className="navbar-filler"></div>
@@ -66,8 +64,6 @@ const DashboardNavBar = ({
   notification,
   setNotification,
   files,
-  folders,
-  folderNames,
   userNames,
 }: DashboardNavbarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,16 +72,16 @@ const DashboardNavBar = ({
       file.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const filteredFolders = folders.filter((folder: any) =>
+    {/*const filteredFolders = folders.filter((folder: any) =>
       folder.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    );*/}
 
     const useDecimal = decimalStorage;
 
     return (
       <div className="search-results">
         <tbody>
-          {filteredFolders.map((folder: any) => (
+          {/*filteredFolders.map((folder: any) => (
             <tr key={folder.id} className="search-result">
               <td>{folderNames[folder.id]}</td>
               <td>{folderNames[folder.parent_id] || "--"}</td>
@@ -97,7 +93,7 @@ const DashboardNavBar = ({
               <td>{userNames[folder.user_id]}</td>
               <td>{folder.updated_at || folder.created_at}</td>
             </tr>
-          ))}
+          ))*/}
           {filteredFiles.map((file: any) => (
             <tr key={file.id} className="search-result">
               <td>{file.name}</td>
@@ -119,14 +115,14 @@ const DashboardNavBar = ({
   return (
     <nav className="navbar dashboard-nav">
       <Link to={"/"} className="navbar-logo">
-        <img src="/cloud-solid.svg" alt="cloud-icon" />
+        <img src="/icons/cloud-solid.svg" alt="cloud-icon" />
         <h1 className="navbar-logo-header-2">drive X</h1>
       </Link>
       <div className="navbar-search">
         <div className="search-header">
           <button className="search-btn">
             <img
-              src="/search-solid.svg"
+              src="/icons/search-solid.svg"
               alt="search-icon"
               className="navbar-icon search-icon"
             />
@@ -140,14 +136,14 @@ const DashboardNavBar = ({
           />
           <button className="search-btn">
             <img
-              src="/xmark-solid.svg"
+              src="/icons/xmark-solid.svg"
               alt="x-icon"
               className="navbar-icon cancel-icon"
             />
           </button>
         </div>
         <div className="search-results-container">
-          {searchQuery && <FileSearch files={files} folders={folders} />}
+          {searchQuery && <FileSearch files={files}/>}
         </div>
       </div>
       <UserAvatar
@@ -175,7 +171,7 @@ const AdminNavBar = ({
   return (
     <nav className="navbar dashboard-nav">
       <Link to={"/"} className="navbar-logo">
-        <img src="/cloud-solid.svg" alt="cloud-icon" />
+        <img src="/icons/cloud-solid.svg" alt="cloud-icon" />
         <h1 className="navbar-logo-header-2">drive X</h1>
       </Link>
       <UserAvatar

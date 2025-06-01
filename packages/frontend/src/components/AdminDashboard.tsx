@@ -65,14 +65,10 @@ const AdminDashboard = () => {
   interface Notification {
     message: string;
     type?: "success" | "error" | "warning" | "info";
-    duration?: number; // milliseconds
+    description?: string; 
   }
 
-  const [notification, setNotification] = useState<Notification>({
-    message: "",
-    type: "success",
-    duration: 5 * 3600, //5 milliseconds
-  });
+  const [notification, setNotification] = useState<Notification | null>(null);
   const [decimalStorage, setDecimalStorage] = useState<boolean>(true);
   const [activeButton, setActiveButton] = useState<AdminSidebarTab>("overview");
   const [subsection, setSubsection] = useState<string>("all-users");

@@ -9,7 +9,7 @@ import { Switch } from "./Switch";
 interface Notification {
   message: string;
   type?: "success" | "error" | "warning" | "info";
-  duration?: number; // milliseconds
+  description?: string;
 }
 
 interface UserAvatarProps {
@@ -17,7 +17,7 @@ interface UserAvatarProps {
   email: string;
   usedStoragePercentage?: number;
   avatarUrl?: string;
-  setNotification: React.Dispatch<React.SetStateAction<Notification>>;
+  setNotification: React.Dispatch<React.SetStateAction<Notification | null>>;
   decimalStorage: boolean;
   setDecimalStorage: React.Dispatch<React.SetStateAction<boolean>>;
 }
