@@ -1,7 +1,4 @@
-import * as dotenv from "dotenv";
-dotenv.config();
-
-const api = process.env.BACKEND_API_URL;
+const api = import.meta.env.VITE_BACKEND_API_URL;
 
 export async function updatePassword(
   oldpassword: string,

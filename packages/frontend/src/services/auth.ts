@@ -1,8 +1,4 @@
-import * as dotenv from "dotenv";
-dotenv.config();
-
-const api = process.env.BACKEND_API_URL;
-console.log("API: ", api);
+const api = import.meta.env.VITE_BACKEND_API_URL;
 
 export async function loginUser(email: string, password: string) {
   const res = await fetch(`${api}log-in`, {
