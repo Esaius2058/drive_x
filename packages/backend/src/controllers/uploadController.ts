@@ -24,28 +24,6 @@ export interface FileMetadata {
   mimetype?: string;
 }
 
-export const uploadForm = async (req: Request, res: Response) => {
-  const userEmail = req.user?.email;
-
-  if (!userEmail) {
-    res.status(401).json({ error: "Unauthorized: User not logged in" });
-    return;
-  }
-  const user = await handleGetUser(userEmail);
-  if (!user) {
-    res.status(404).json({ error: "User not found" });
-    return;
-  }
-
-  const folders = user.Folder;
-
-  res.render("upload-form", {
-    title: "Upload Form",
-    user: req.user,
-    folders: folders,
-  });
-};
-
 export const uploadSingleFile = async (req: Request, res: Response) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
@@ -89,9 +67,10 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
       {
         id: data.id,
         user_id: userId,
-        name: file.filename,
+        name: file.originalname,
         type: file.mimetype,
         storage_path: data.path,
+        stored_name: file.filename,
         size: file.size,
       },
     ]);

@@ -1,4 +1,4 @@
-/*import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -18,7 +18,7 @@ export interface CustomUser {
     sub: string;
   };
 }
-
+/*
 export const handleUploadSingleFile = async (
   fileName: string,
   folderId: number,
@@ -40,8 +40,8 @@ export const handleUploadSingleFile = async (
   } catch (err: any) {
     console.error("Error uploading file: ", err);
   }
-};
-
+};*/
+/*
 export const handleUploadMultipleFiles = async (
   files: Express.Multer.File[],
   folderId: number,
@@ -62,7 +62,7 @@ export const handleUploadMultipleFiles = async (
     console.error("Error uploading files:", err);
   }
 };
-
+*/
 export const handleCreateUser = async (
   name: string,
   email: string,
@@ -90,8 +90,8 @@ export const handleGetUser = async (email: string) => {
         email: email
       },
       include: {
-        File: true,
-        Folder: true
+        files: true,
+        folders: true
       }
     });
   } catch (err: any) {
@@ -193,7 +193,7 @@ passport.deserializeUser(async (id: number, done) => {
     done(error);
   }
 });*/
-/*
+
 export const handleGetFile = async (id: number) => {
   try {
     return await prisma.fileMetadata.findUnique({
@@ -246,9 +246,6 @@ export const handleGetFolderDetails = async (id: number) => {
       where: {
         id: id,
       },
-      include: {
-        file: true,
-      },
     });
   } catch (err: unknown) {
     console.error("Error getting folder details: ", err);
@@ -269,7 +266,7 @@ export const handleDeleteFolder = async (id: number) => {
 
 export const handleDeleteFile = async (id: number) => {
   try {
-    await prisma.file.delete({
+    await prisma.fileMetadata.delete({
       where: {
         id: id,
       },
@@ -281,7 +278,7 @@ export const handleDeleteFile = async (id: number) => {
 
 export const handleUpdateFile = async (id: number, fileName: string) => {
   try {
-    await prisma.file.update({
+    await prisma.fileMetadata.update({
       where: {
         id: id,
       },
@@ -293,4 +290,4 @@ export const handleUpdateFile = async (id: number, fileName: string) => {
     console.error("Error updating file: ");
   }
 };
-*/
+
