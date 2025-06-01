@@ -219,7 +219,6 @@ input {
 }
 .landing-hero img {
   width: 50%;
-  height: 600px;
 }
 .button-div {
   display: flex;
@@ -263,7 +262,6 @@ input {
   border-radius: 40px;
   transition: background-color 0.2s ease;
 }
-
 .search-btn:hover {
   background-color: var(--medium-gray); /* or whatever suits your theme */
 }
@@ -296,6 +294,7 @@ input {
 .feature img {
   width: 320px;
   height: 240px;
+  border-radius: 20px;
 }
 /*pivot section*/
 .landing-pivot {
@@ -303,6 +302,7 @@ input {
   justify-content: center;
   align-items: center;
   width: 100%;
+  height: 300px;
   padding: 40px;
   background-color: var(--light-gray);
 }
@@ -311,7 +311,7 @@ input {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap: 30px;
+  gap: 50px;
   width: 100%;
 }
 /*footer*/
@@ -437,7 +437,7 @@ input {
   }
 }
 
-/*Dashboard Page*/
+/*DASHBOARD PAGE*/
 .dashboard-page, .error-page {
   display: flex;
   justify-content: start;
@@ -497,11 +497,29 @@ input {
   align-items: start;
   flex-direction: column;
   width: 100%;
+  min-width: 600px;
   height: 100%;
   padding: 20px;
   gap: 10px;
   border-radius: 20px;
   background-color: var(--pearl);
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray) var(--pearl);
+}
+.dashboard-content::-webkit-scrollbar {
+  width: 8px; /* vertical */
+  height: 8px; /* horizontal */
+}
+.dashboard-content::-webkit-scrollbar-thumb {
+  background-color: var(--gray);
+  border-radius: 4px;
+}
+.dashboard-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dark-gray);
+}
+.dashboard-content::-webkit-scrollbar-track {
+  background: var(--pearl);
 }
 .dashboard-content h2 {
   font-size: 25px;
@@ -581,6 +599,33 @@ div span {
   background-color: var(--navy); /* or any solid primary */
   transition: all 0.2s ease;
   transform-origin: left; /* optional for better animation */
+}
+.toast-notification {
+  position: fixed;
+  bottom: 20px;
+  right: -180px;
+  transform: translateX(-50%);
+  min-width: 300px;
+  max-width: 90%;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  color: var(--light-gray);
+}
+.toast-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.toast-notification.success {
+  background-color: var(--light-navy);  
+}
+.toast-notification.error {
+  background-color: #e53e3e;  
+}
+.toast-notification.warning {
+  background-color: #ecc94b;  
+  color: var(--dark-gray);
 }
 /*UserProfile*/
 .user-avatar-container {
@@ -734,6 +779,7 @@ div span {
 }
 /*Error Page*/
 .error-page{
+  display: flex;
   justify-content: center;
   gap: 60px;
   background-color: var(--light-gray);
@@ -745,10 +791,13 @@ div span {
 .error-page h2{
   font-size: 40px;
   color: var(--navy);
+  text-align: center;
 }
-.no-section{
+.no-section, .error-boundary{
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .no-section h1{
   font-size: 40px;
