@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 const api = process.env.BACKEND_API_URL;
 console.log("API: ", api);
 
