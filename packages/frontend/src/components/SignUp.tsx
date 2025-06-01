@@ -99,7 +99,7 @@ const SignUp = () => {
       <div className="auth-form">
         <div className="auth-div">
           <Link to={"/"} className="cancel-btn">
-            <img src="/xmark-solid.svg" alt="cancel" />
+            <img src="/icons/xmark-solid.svg" alt="cancel" />
           </Link>
         </div>
         <div className="auth-div-1">
