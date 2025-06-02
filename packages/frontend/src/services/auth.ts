@@ -5,6 +5,7 @@ const api =
 
 export async function loginUser(email: string, password: string) {
   try {
+    console.log("API on login: ", api);
     const res = await fetch(`${api}/log-in`, {
       method: "POST",
       headers: {
@@ -28,7 +29,7 @@ export async function loginUser(email: string, password: string) {
 
     return data.user;
   } catch (error: any) {
-    throw error;
+    console.error("error during log in", error);
   }
 }
 
@@ -62,8 +63,7 @@ export async function signUpUser(
 
     return data.user;
   } catch (error: any) {
-    console.log("Error ");
-    throw error;
+    console.error("error during sign up", error);
   }
 }
 

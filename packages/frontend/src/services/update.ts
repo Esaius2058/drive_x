@@ -3,6 +3,7 @@ const api =
     ? "http://localhost:3000/api"
     : import.meta.env.VITE_BACKEND_API_URL;
 
+console.log("API: ", api);
 export async function updatePassword(oldpassword: string, newpassword: string) {
   const token = localStorage.getItem("token");
   const res = await fetch(`${api}/profile/update/new-password`, {
