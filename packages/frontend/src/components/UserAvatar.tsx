@@ -1,6 +1,5 @@
 "use client";
 import { useAuth } from "./AuthContext";
-
 import { useState, useRef, useEffect, ReactEventHandler } from "react";
 import { updatePassword } from "../services/update";
 import { deleteUserProfile } from "../services/auth";
@@ -48,10 +47,12 @@ export function UserAvatar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const api = import.meta.env.VITE_BACKEND_API_URL;
+
   const { logout } = useAuth();
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/logout", {
+      const res = await fetch(`${api}/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,7 +69,8 @@ export function UserAvatar({
       console.error("Logout failed:", error);
       // Handle error (e.g., show a notification)
       setNotification({
-        message: error.message,
+        message: "Logout failed",
+        description: error.message,
         type: "error",
       });
     } finally {
@@ -172,7 +174,7 @@ export function UserAvatar({
           <img src={avatarUrl} alt="user-avatar" className="avatar-image" />
         ) : (
           <div className="avatar-placeholder">
-            <img src="\user-solid.svg" alt="user" className="avatar-image" />
+            <img src="/icons/user-solid.svg" alt="user" className="avatar-image" />
           </div>
         )}
       </button>
