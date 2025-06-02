@@ -1,9 +1,9 @@
-const api = import.meta.env.VITE_BACKEND_API_URL;
+const api =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:3000/api"
+    : import.meta.env.VITE_BACKEND_API_URL;
 
-export async function updatePassword(
-  oldpassword: string,
-  newpassword: string
-) {
+export async function updatePassword(oldpassword: string, newpassword: string) {
   const token = localStorage.getItem("token");
   const res = await fetch(`${api}/profile/update/new-password`, {
     method: "POST",
