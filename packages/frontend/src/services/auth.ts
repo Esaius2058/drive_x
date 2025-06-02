@@ -1,11 +1,9 @@
-const api =
-  import.meta.env.MODE === "development"
-    ? "http://localhost:3000/api"
-    : import.meta.env.VITE_BACKEND_API_URL;
+const api = import.meta.env.VITE_BACKEND_API_URL;
 
 export async function loginUser(email: string, password: string) {
   try {
     console.log("API on login: ", api);
+    console.log("Mode: ", import.meta.env.MODE);
     const res = await fetch(`${api}/log-in`, {
       method: "POST",
       headers: {
