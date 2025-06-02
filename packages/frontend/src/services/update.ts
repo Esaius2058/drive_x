@@ -5,7 +5,7 @@ export async function updatePassword(
   newpassword: string
 ) {
   const token = localStorage.getItem("token");
-  const res = await fetch(`${api}profile/update/new-password`, {
+  const res = await fetch(`${api}/profile/update/new-password`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

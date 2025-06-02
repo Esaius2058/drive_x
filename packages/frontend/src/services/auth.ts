@@ -1,7 +1,7 @@
 const api = import.meta.env.VITE_BACKEND_API_URL;
 
 export async function loginUser(email: string, password: string) {
-  const res = await fetch(`${api}log-in`, {
+  const res = await fetch(`${api}/log-in`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -26,7 +26,7 @@ export async function signUpUser(
   email: string,
   password: string
 ) {
-  const res = await fetch(`${api}sign-up`, {
+  const res = await fetch(`${api}/sign-up`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export async function fetchUserProfile() {
   }
 
   try {
-    const res = await fetch(`${api}profile`, {
+    const res = await fetch(`${api}/profile`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -81,7 +81,7 @@ export async function fetchUserProfile() {
 
 export async function deleteUserProfile() {
   const token = localStorage.getItem("token");
-  const res = await fetch(`${api}profile/delete`, {
+  const res = await fetch(`${api}/profile/delete`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -101,7 +101,7 @@ export async function logoutUser(){
   const token = localStorage.getItem("token");
 
   try{
-    const res = await fetch(`${api}log-out`, {
+    const res = await fetch(`${api}/log-out`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
