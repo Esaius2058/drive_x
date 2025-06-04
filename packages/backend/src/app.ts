@@ -15,7 +15,9 @@ app.use(express.json());
 // Middleware to parse URL-encoded data (like form submissions)
 app.use(express.urlencoded({ extended: true }));
 // Middleware to enable CORS (Cross-Origin Resource Sharing)
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:3000"
+}));
 //Initialize the router directory
 app.use("/api", router);
 // Directory for static files
