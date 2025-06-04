@@ -16,7 +16,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Middleware to enable CORS (Cross-Origin Resource Sharing)
 app.use(cors({
-    origin: "http://localhost:3000"
+    origin: [
+        "http://localhost:3000",
+        "https://file-uploader-nu.vercel.app"
+    ],
+    credentials: true,
 }));
 //Initialize the router directory
 app.use("/api", router);
