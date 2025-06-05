@@ -44,9 +44,7 @@ export const createFolder = async (req: Request, res: Response): Promise<void> =
     return;
   } catch (error: any) {
     console.error("Internal server error:", error);
-    res.status(500).json({
-      error: error.message || "Internal server error",
-    });
+    res.status(500).json({message: "Error creating folder", type: "Internal Server Error", error});
     return;
   }
 };
@@ -97,7 +95,7 @@ export const updateFolder = async (
     return;
   } catch (error) {
     console.error("Update error:", error);
-    res.status(500).json({ error: "Failed to update folder" });
+    res.status(500).json({message: "Error updating folder", type: "Internal Server Error", error});
     return;
   }
 };
@@ -120,9 +118,7 @@ export const getFolders = async (
     return;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    res.status(500).json({
-      error: error.message || "Internal server error",
-    });
+    res.status(500).json({message: "Error getting folders", type: "Internal Server Error", error});
     return;
   }
 };
@@ -178,9 +174,7 @@ export const getFolderDetails = async (req: Request, res: Response) => {
     return;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    res.status(500).json({
-      error: error.message || "Internal server error",
-    });
+    res.status(500).json({message: "Error getting folder details", type: "Internal Server Error", error});
     return;
   }
 };
@@ -223,9 +217,7 @@ export const deleteFolder = async (req: Request, res: Response) => {
     return;
   } catch (error: any) {
     console.error("Delete error:", error);
-    res.status(500).json({
-      error: error.message || "Internal server error",
-    });
+    res.status(500).json({message: "Error deleting folder", type: "Internal Server Error", error});
     return;
   }
 };
