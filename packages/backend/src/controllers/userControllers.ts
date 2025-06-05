@@ -69,7 +69,7 @@ export const verifyJWT = async (
     next();
   } catch (error) {
     console.error("JWT verification failed:", error);
-    res.status(401).json({ message: "Unauthorized: Invalid token" });
+    res.status(401).json({message: "JWT verification failed", type: "Internal Server Error", error});
     return;
   }
 };
@@ -147,7 +147,7 @@ export const createUser = async (
     });
   } catch (error: any) {
     console.error("Error signing in: ", error);
-    res.status(500).json("Internal server error");
+    res.status(500).json({message: "Error Signing Up", type: "Internal Server Error", error});
   }
 };
 
@@ -184,9 +184,9 @@ export const loginUser = async (
       user: loggedUser.user,
       session: loggedUser.session,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error logging in: ", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({message: "Error Logging In", type: "Internal Server Error", error});
   }
 };
 
@@ -205,7 +205,7 @@ export const logoutUser = async (
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Error logging out: ", error);
-    res.status(500).json({ message: "Internal server error. Couldn't logout" });
+    res.status(500).json({message: "Error Logging Out", type: "Internal Server Error", error});
   }
 };
 
@@ -219,9 +219,9 @@ export const updateEmail = async (req: Request, res: Response) => {
       .select();
 
     if (error) throw error;
-  } catch (err: any) {
-    console.error("Internal server error: ", err);
-    res.status(500).json({ error: err.message });
+  } catch (error: any) {
+    console.error("Internal server error: ", error);
+    res.status(500).json({message: "Error Updating Email", type: "Internal Server Error", error});
   }
 };
 
@@ -256,7 +256,7 @@ export const updatePassword = async (req: Request, res: Response) => {
     return;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    res.status(500).json("Internal server error");
+    res.status(500).json({message: "Error Updating Password", type: "Internal Server Error", error});
     return;
   }
 };
@@ -289,7 +289,7 @@ export const updateRole = async (req: Request, res: Response) => {
     return;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    res.status(500).json("Internal server error");
+    res.status(500).json({message: "Error Updating Role", type: "Internal Server Error", error});
   }
 };
 
@@ -397,7 +397,7 @@ export const getProfile = async (
     return;
   } catch (error: any) {
     console.error("Error fetching profile:", error);
-    res.status(500).json({ message: "Error fetching profile" });
+    res.status(500).json({ message: "Error fetching profile", type: "Internal Server Error", error});
   }
 };
 
@@ -479,7 +479,7 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
     };
   } catch (error) {
     console.error("Error fetching admin stats:", error);
-    return;
+    throw error;
   }
 };
 
@@ -502,9 +502,9 @@ export const deleteProfile = async (
 
     if (dbError) throw dbError;
 
-    res.status(200).json({ message: "Profile deleted successfully" });
+    res.status(200).json({ message: "Profile deleted successfully"});
   } catch (error) {
     console.error("Error deleting profile:", error);
-    res.status(500).json({ message: "Error deleting profile" });
+    res.status(500).json({ message: "Error deleting profile", type: "Internal Server Error", error});
   }
 };
