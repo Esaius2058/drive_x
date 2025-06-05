@@ -44,9 +44,7 @@ export const deleteFile = async (req: Request, res: Response): Promise<void> => 
     return;
   } catch (error: any) {
     console.error("Delete error:", error);
-    res.status(500).json({
-      error: error.message || "Internal server error",
-    });
+    res.status(500).json({message: "Error deleting file", type: "Internal Server Error", error});
     return;
   }
 };
@@ -76,9 +74,7 @@ export const getFile = async (req: Request, res: Response): Promise<void> => {
     return;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    res.status(500).json({
-      error: error.message || "Internal server error",
-    });
+    res.status(500).json({message: "Error getting file", type: "Internal Server Error", error});
     return;
   }
 };
@@ -125,7 +121,7 @@ export const updateFile = async (req: Request, res: Response): Promise<void> => 
     return ;
   } catch (error) {
     console.error("Update error:", error);
-    res.status(500).json({ error: "Failed to update file" });
+    res.status(500).json({message: "Error updating file", type: "Internal Server Error", error});
     return ;
   }
 };
@@ -143,9 +139,7 @@ export const getFiles = async (req: Request, res: Response): Promise<void> => {
     return ;
   } catch (error: any) {
     console.error("Internal server error: ", error);
-    res.status(500).json({
-      error: error.message || "Internal server error",
-    });
+    res.status(500).json({message: "Error fetching files", type: "Internal Server Error", error});
     return;
   }
 };
