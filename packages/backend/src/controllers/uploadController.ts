@@ -88,9 +88,9 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
 
     res.status(201).json({ success: true, url: publicUrl });
     return;
-  } catch (err: any) {
-    console.error("Upload error:", err);
-    res.status(500).json({ message: "Error uploading file" });
+  } catch (error: any) {
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Error uploading file", type: "Internal Server Error", error});
     return;
   }
 };
@@ -167,7 +167,7 @@ export const uploadMultipleFiles = async (
     });
   } catch (error: any) {
     console.error("Upload error:", error);
-    res.status(500).json({ message: "Error uploading files" });
+    res.status(500).json({ message: "Error uploading files", type: "Internal Server Error", error});
   }
 };
 
