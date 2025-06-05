@@ -439,7 +439,9 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
     //get all the users and their roles from the db
     const { data: allUsers, error: allUsersError } = await supabase
       .from("Users")
-      .select("email, role, name, used_storage");
+      .select("email, role, name, used_storage")
+      .range(0, 24)
+      .order("created_at",{ascending: false});
 
     if (allUsersError) {
       console.error("Error fetching all users:", allUsersError);
@@ -449,7 +451,9 @@ const getAdminStats = async (req: Request, res: Response): Promise<any> => {
     //get the activity logs of all the users
     const { data: activityLogs, error: activityLogsError } = await supabase
       .from("FileLogs")
-      .select("user_id, file_id, action, inserted_at, id");
+      .select("user_id, file_id, action, inserted_at, id")
+      .range(0, 24)
+      .order("inserted_at",{ascending: false});
 
     if (activityLogsError) {
       console.error("Error fetching logs:", activityLogsError);
