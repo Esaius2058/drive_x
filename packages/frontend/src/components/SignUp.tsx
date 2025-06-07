@@ -5,12 +5,19 @@ import { useNavigate } from "react-router-dom";
 import LoadingDashboard from "./LoadingScreen";
 
 const SignUp = () => {
+  interface Notification {
+    message: string;
+    type?: "success" | "error" | "warning" | "info";
+    description?: string; // milliseconds
+  }
+
   const [authType, setAuthType] = useState("sign-up");
   const [authHeader, setAuthHeader] = useState("Sign Up");
   const [authIntro, setAuthIntro] = useState("Already");
   const [authCTA, setAuthCTA] = useState("Log In");
   const [initializedAuth, setInitializedAuth] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   const { loading, setLoading, signup, login, userFiles, isAdmin } = useAuth();
 
@@ -21,7 +28,15 @@ const SignUp = () => {
     if (loading === false && isAuthenticated) {
       navigate(`${path}`, { state: { userFiles } });
     }
-  }, [loading, isAuthenticated]);
+
+    if (notification) {
+      const timeout = setTimeout(() => {
+        setNotification(null);
+      }, 10000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [loading, isAuthenticated, notification]);
 
   const signupForm = useRef<HTMLFormElement>(null);
   const loginForm = useRef<HTMLFormElement>(null);
@@ -39,10 +54,67 @@ const SignUp = () => {
     }
   };
 
+  const validateEmail = (email: string) => {
+    const regex = /^[\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!regex.test(email)) {
+      setNotification({
+        message: "Please enter a valid email address."
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const validatePassword = (password: string) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(){}|<>,.":]/.test(password);
+
+    if (password.length < minLength) {
+      setNotification({
+        message: "Password must at least 8 characters long.",
+      });
+      return false;
+    }
+
+    if (!hasUpperCase) {
+      setNotification({
+        message: "Password must contain at least one lowercase letter.",
+      });
+      return false;
+    }
+
+    if (!hasLowerCase) {
+      setNotification({
+        message: "Password must contain at least one uppercase letter.",
+      });
+      return false;
+    }
+
+    if (!hasNumber) {
+      setNotification({
+        message: "Password must contain at least one number.",
+      });
+      return false;
+    }
+
+    if (!hasSpecialChar) {
+      setNotification({
+        message: "Password must contain at least one special character.",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setInitializedAuth(true);
     const form = signupForm.current;
     if (!form) return;
 
@@ -53,6 +125,19 @@ const SignUp = () => {
 
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+
+    const emailValidation = validateEmail(email);
+    const passwordValidation = validatePassword(password);
+
+    if(emailValidation === false){
+      return;
+    }
+
+    if (passwordValidation === false) {
+      return;
+    }
+
+    setInitializedAuth(true);
 
     await signup(firstName, lastName, email, password);
 
@@ -66,7 +151,6 @@ const SignUp = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setInitializedAuth(true);
     const form = loginForm.current;
     if (!form) {
       console.warn("loginForm ref is null");
@@ -78,6 +162,8 @@ const SignUp = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
+    setInitializedAuth(true);
+
     await login(email, password);
 
     //handle loading state
@@ -87,6 +173,14 @@ const SignUp = () => {
       setInitializedAuth(false);
       setLoading(false);
     }, 3000);
+  };
+
+  const renderNotification = (notification: Notification) => {
+    return (
+      <div className={`auth-notification`}>
+        <p>{notification.message}</p>
+      </div>
+    );
   };
 
   if (loading && initializedAuth) {
@@ -134,6 +228,7 @@ const SignUp = () => {
               placeholder="password"
               required
             />
+            {notification && renderNotification(notification)}
             <button type="submit" className="primary-btn">
               {authHeader}
             </button>
@@ -147,6 +242,7 @@ const SignUp = () => {
               placeholder="password"
               required
             />
+            {notification && renderNotification(notification)}
             <div className="button-div">
               <button className="secondary-btn">Forgot Password?</button>
               <button type="submit" className="primary-btn">
