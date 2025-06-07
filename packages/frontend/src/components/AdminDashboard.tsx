@@ -17,7 +17,6 @@ interface UsersTableProps {
 const UsersTable = ({
   user,
   allUsers,
-  userNames,
   decimalStorage,
   decimalStorageConversion,
   binaryStorageConversion,
