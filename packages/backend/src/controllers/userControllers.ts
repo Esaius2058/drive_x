@@ -97,13 +97,15 @@ export const createUser = async (
     });
     console.log("Signup Email: ", email, "Password: ", req.body.password);
 
-    const user = newUser.user;
-    if (!user) {
-      throw new Error("User not found, cannot sign token.");
-    }
-
     if (newUserError) {
       throw newUserError;
+    }
+    
+    const user = newUser.user;
+    console.log("newUser: ", newUser);
+    console.log("User trying to Sign Up: ", user);
+    if (!user) {
+      throw new Error("User not found, cannot sign token.");
     }
 
     // Insert metadata into the database
