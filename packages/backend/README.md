@@ -1,4 +1,4 @@
-# Drive X Backend API
+# 🛠️ Drive X Backend API
 
 A Node.js/Express backend for handling file uploads with Multer, JWT authentication, and Supabase storage.
 
@@ -11,42 +11,49 @@ A Node.js/Express backend for handling file uploads with Multer, JWT authenticat
 - TypeScript support
 - Error handling middleware
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
+
 - Node.js 16+
 - npm/yarn
 - Supabase account
 - PostgreSQL database
 
 ### Installation
+
 1. Clone the repository
 ```bash
 git clone https://github.com/esaius2058/file-uploader.git
 cd packages/backend
+```
 
-2.Install dependencies
-
+2. Install dependencies
+```bash
 npm install
-# or
+    or
 yarn install
+```
 
-    Create .env file
+3. Create .env file
 
+PORT=4000
+DATABASE_URL=postgresql://user:password@localhost:5432/drive_x
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_BUCKET=user-files
 
-JWT_SECRET=your_jwt_secret_here
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_key
-PORT=3000
+4. Running the Server
 
-Running the Server
+```bash
+npm run dev
+  or
+yarn dev
+```
 
-- npm run dev
-# or
-- yarn dev
+### 🗂 Project Structure
 
-🗂 Project Structure
-
+```bash
 backend/
 ├── src/
 │   ├── controllers/       # Route controllers
@@ -61,15 +68,17 @@ backend/
 ├── .env.example           # Environment variables template
 ├── package.json
 └── tsconfig.json
+```
 
-📌 API Endpoints
-Authentication
+
+### ⚙️ API Endpoints
+**Authentication**
 
     POST /api/auth/login - User login
 
     POST /api/auth/register - User registration
 
-File Operations
+**File Operations**
 
     POST /api/upload - Upload single file
 
@@ -85,7 +94,7 @@ File Operations
 
     DELETE /api/files/:id - Delete a file
 
-Folder Operations
+**Folder Operations**
 
     POST /api/folders - Create new folder
 
@@ -94,7 +103,7 @@ Folder Operations
     GET /api/folders/:id - Get folder details
 
 
-Error Handling
+**Error Handling**
 
 Custom error middleware handles:
 
@@ -106,7 +115,30 @@ Custom error middleware handles:
 
     404 routes
 
-🤝 Contributing
+
+### Database
+
+Managed with Prisma + Supabase Postgres. Example models:
+
+```ts
+model File {
+  id          String   @id @default(uuid())
+  name        String
+  userId      String
+  size        Int
+  mimetype    String
+  storagePath String
+  createdAt   DateTime @default(now())
+}
+```
+
+### Docker
+```bash
+docker build -t my-backend .
+docker run -p 3000:3000 my-backend
+```
+
+### Contributing
 
     Fork the project
 
@@ -118,9 +150,8 @@ Custom error middleware handles:
 
     Open a Pull Request
 
-📄 License
+### 📜 License
+MIT — do whatever, just don't sell it as-is and call it your masterpiece
 
-Distributed under the MIT License.
-✉️ Contact
-
+### ✉️ Contact
 Isaiah - wabwirewild@gmail.com
