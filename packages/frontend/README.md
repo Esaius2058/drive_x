@@ -1,12 +1,54 @@
-# React + Vite
+# 📁 Drive X — Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Drive X Frontend** is the client-side interface of a full-stack Google Drive clone, built with the PERN stack. This frontend interacts with a Supabase-powered backend to let users upload, manage, and store files securely in the cloud.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React + TypeScript
 
-## Expanding the ESLint configuration
+- Vite for blazing-fast dev builds
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Tailwind CSS for styling
+
+- React Router for navigation
+
+- Supabase JS for auth and storage
+
+## Setup
+
+```bash
+# Navigate to client directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start the dev server
+npm run dev
+```
+
+## Folder Structure
+```arduino
+client/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── hooks/
+│   ├── utils/
+│   ├── App.tsx
+│   └── main.tsx
+├── public/
+├── tailwind.config.js
+├── index.html
+└── vite.config.ts
+```
+
+## TODO
+1. Offline support
+
+2. File sharing via links
+
+3. Real-time collaboration
+
+## 📜 License
+MIT — do whatever, just don't sell it as-is and call it your masterpiece
