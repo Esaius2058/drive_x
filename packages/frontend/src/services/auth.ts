@@ -50,12 +50,15 @@ export async function signUpUser(
     });
 
     const contentType = res.headers.get("content-type");
-    if (!res.ok) throw new Error(`HTTP error! ${res.status}`);
-    if (!contentType?.includes("application/json")) {
-      const text = await res.text(); // See what's really returned
-      console.error("Expected JSON, got:", text);
-      return;
+    const isJson = contentType?.includes("application/json");
+
+    if (!res.ok){
+      const errorBody = isJson ? await res.json() : { message: await res.text() };
+      const error = new Error(errorBody.message || "Unknown error");
+      (error as any).status = errorBody.error.status;
+      throw error;
     }
+    
 
     const data = await res.json();
 
@@ -64,7 +67,8 @@ export async function signUpUser(
 
     return data.user;
   } catch (error: any) {
-    console.error("error during sign up", error);
+    console.error("Sign Up Error", error);
+    throw error;
   }
 }
 
