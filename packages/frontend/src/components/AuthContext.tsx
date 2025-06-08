@@ -1,5 +1,11 @@
 import React, { createContext, useContext } from "react";
 
+interface Notification {
+  message: string;
+  type?: "success" | "error" | "warning" | "info";
+  description?: string; // milliseconds
+}
+
 export type AuthContextType = {
   user: any;
   userFiles: any;
@@ -16,6 +22,8 @@ export type AuthContextType = {
   loading: boolean;
   error: Error | null;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  notification: Notification | null;
+  setNotification: React.Dispatch<React.SetStateAction<Notification | null>>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(

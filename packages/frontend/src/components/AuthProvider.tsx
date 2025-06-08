@@ -9,6 +9,12 @@ import { AuthContext } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
+interface Notification {
+  message: string;
+  type?: "success" | "error" | "warning" | "info";
+  description?: string; // milliseconds
+}
+
 interface UserFiles {
   userNames?: object;
   folders?: object;
@@ -25,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
   const [userFiles, setUserFiles] = useState<UserFiles>({});
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -34,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isJWTExpired(storedToken).then(async (expired) => {
         if (expired) {
           console.warn("JWT token is expired, clearing state");
-          // If expired, clear the state        
+          // If expired, clear the state
           setUser(null);
           setToken(null);
           setUserFiles({});
@@ -88,11 +95,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string
   ) {
-    const user = await signUpUser(firstname, lastname, email, password);
-    const storedToken = localStorage.getItem("token");
+    try {
+      const user = await signUpUser(firstname, lastname, email, password);
+      const storedToken = localStorage.getItem("token");
 
-    setUser(user);
-    setToken(storedToken);
+      setUser(user);
+      setToken(storedToken);
+    } catch (error: any) {
+      if (error.status === 422) {
+        setNotification({
+          message: "User already exists. Login instead.",
+        });
+      } else {
+        setNotification({
+          message: "Unexpected error. Try again.",
+        });
+      }
+    }
   }
 
   async function login(email: string, password: string) {
@@ -163,8 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const decoded: any = jwtDecode(token);
       const currentTime = Date.now() / 1000; // Convert to seconds
       return decoded.exp < currentTime;
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error decoding JWT:", error);
       return true; // Assume expired if there's an error
     }
@@ -183,6 +201,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signup,
         login,
         logout,
+        notification,
+        setNotification,
       }}
     >
       {children}
