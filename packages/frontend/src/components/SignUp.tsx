@@ -55,7 +55,7 @@ const SignUp = () => {
   };
 
   const validateEmail = (email: string) => {
-    const regex = /^[\s@]+@[^\s@]+\.[^\s@]+$/;
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     if (!regex.test(email)) {
       setNotification({
@@ -83,14 +83,14 @@ const SignUp = () => {
 
     if (!hasUpperCase) {
       setNotification({
-        message: "Password must contain at least one lowercase letter.",
+        message: "Password must contain at least one uppercase letter.",
       });
       return false;
     }
 
     if (!hasLowerCase) {
       setNotification({
-        message: "Password must contain at least one uppercase letter.",
+        message: "Password must contain at least one lowercase letter.",
       });
       return false;
     }
