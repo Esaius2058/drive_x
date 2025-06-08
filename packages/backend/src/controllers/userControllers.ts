@@ -114,7 +114,7 @@ export const createUser = async (
       .insert([{ name: fullname, email: email, password: hashedPassword }]);
 
     //Create a new root folder
-    const { data: folder, error: folderError } = await supabase
+    /*const { data: folder, error: folderError } = await supabase
       .from("Folders")
       .insert([{ name: "Parent Folder", user_id: user.id, parent_id: null }])
       .select(); // <-lets TS infer the shape of 'data'
@@ -122,13 +122,11 @@ export const createUser = async (
     if (folderError || !folder || folder.length === 0) {
       console.error("Failed to create folder:", folderError);
       throw folderError;
-    }
+    }*/
 
-    if (dbError || folderError) {
-      dbError
-        ? console.error("Database error:", dbError)
-        : console.error("Database error:", folderError);
-      throw dbError || folderError;
+    if (dbError) {
+      console.error("Database error:", dbError);
+      throw dbError;
     }
 
     const session = newUser.session;
