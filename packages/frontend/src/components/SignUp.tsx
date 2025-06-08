@@ -19,7 +19,7 @@ const SignUp = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
 
-  const { loading, setLoading, signup, login, userFiles, isAdmin } = useAuth();
+  const { loading, setLoading, signup, login, userFiles, isAdmin, notification: authNotification } = useAuth();
 
   const navigate = useNavigate();
   const path = isAdmin ? "/admin-dashboard" : "/dashboard";
@@ -138,6 +138,12 @@ const SignUp = () => {
     }
 
     setInitializedAuth(true);
+
+    if(authNotification != null){
+      setNotification({
+        message: authNotification.message
+      });
+    }
 
     await signup(firstName, lastName, email, password);
 
