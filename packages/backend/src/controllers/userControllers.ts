@@ -109,7 +109,7 @@ export const createUser = async (
     }
 
     // Insert metadata into the database
-    const { data: dbData, error: dbError } = await supabase
+    const { error: dbError } = await supabase
       .from("Users")
       .insert([{ name: fullname, email: email, password: hashedPassword }]);
 
