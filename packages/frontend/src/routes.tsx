@@ -34,9 +34,7 @@ const MainRoutes = () => {
         {
           path: "dashboard",
           element: (
-            <ErrorBoundaryWrapper>
               <Dashboard />
-            </ErrorBoundaryWrapper>
           ),
         },
         {
