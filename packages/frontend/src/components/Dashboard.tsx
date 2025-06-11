@@ -55,8 +55,8 @@ const Dashboard = () => {
 
   const { files, userNames, token, usedStorage: totalStorageUsed } = userFiles;
   const { user } = useAuth();
-  const name = `${userNames[user.id]}` || "John Doe";
-  const email = `${user.email}` || "john324@gmail.com";
+  const name = "John Doe";
+  const email = "john324@gmail.com";
   const avatarUrl = ``;
 
   type SidebarTab = (typeof sidebarTabs)[number]["name"];
@@ -94,15 +94,6 @@ const Dashboard = () => {
     }
   }, [totalStorageUsed, decimalStorage, notification]);
 
-  const renderNotification = (notification: Notification) => {
-    return (
-      <div className={`toast-notification ${notification.type}`}>
-        <p className="toast-title">{notification.message}</p>
-        <p>{notification.description}</p>
-      </div>
-    );
-  };
-
   const convertToLocaleString = (raw: string): string => {
     const date = new Date(raw);
 
@@ -110,361 +101,64 @@ const Dashboard = () => {
     return formatted;
   };
 
-  const renderSection = (activeButton: SidebarTab) => {
+  const renderTable = () => (
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Owner</th>
+          <th>Size</th>
+          <th>Modified</th>
+        </tr>
+      </thead>
+      <tbody>
+        {files.map((file: any) => (
+          <tr key={file.id}>
+            <td>{file.name}</td>
+            <td>{userNames[file.user_id]}</td>
+            <td>
+              {decimalStorage
+                ? decimalStorageConversion(Number(file.size))
+                : binaryStorageConversion(Number(file.size))}
+            </td>
+            <td>{convertToLocaleString(file.updated_at)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  const renderSection = () => {
     switch (activeButton) {
       case "recent":
-        return (
-          <div id="recent-files" className="dashboard-section">
-            {files.length == 0 ? (
-              <NoFiles />
-            ) : (
-              <>
-                <h2>Recent Files</h2>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Owner</th>
-                      <th>Size</th>
-                      <th>Modified</th>
-                    </tr>
-                  </thead>
-                  {userFiles == null || undefined ? (
-                    <tbody>
-                      <tr>
-                        <td>File 3</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                      <tr>
-                        <td>File 4</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                    </tbody>
-                  ) : (
-                    <tbody>
-                      {/*
-                      {folders.map((folder: any) => (
-                        <tr key={folder.id}>
-                          <td>{folderNames[folder.id]}</td>
-                          <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(folder.size))
-                              : binaryStorageConversion(Number(folder.size))}
-                          </td>
-                          <td>{userNames[folder.user_id]}</td>
-                          <td>{folder.updated_at || folder.created_at}</td>
-                        </tr>
-                      ))}*/}
-                      {files.map((file: any) => (
-                        <tr key={file.id}>
-                          <td>{file.name}</td>
-                          <td>{userNames[file.user_id]}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(file.size))
-                              : binaryStorageConversion(Number(file.size))}
-                          </td>
-                          <td>{convertToLocaleString(file.updated_at)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  )}
-                </table>
-              </>
-            )}
-          </div>
-        );
+        return files.length === 0 ? <NoFiles /> : <>{renderTable()}</>;
       case "my-files":
-        return (
-          <div id="my-files" className="dashboard-section">
-            {files.length == 0 ? (
-              <NoFiles />
-            ) : (
-              <>
-                <h2>My Files</h2>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Owner</th>
-                      <th>Size</th>
-                      <th>Modified</th>
-                    </tr>
-                  </thead>
-                  {userFiles == null || undefined ? (
-                    <tbody>
-                      <tr>
-                        <td>File 3</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                      <tr>
-                        <td>File 4</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                    </tbody>
-                  ) : (
-                    <tbody>
-                      {/*{folders.map((folder: any) => (
-                        <tr key={folder.id}>
-                          <td>{folderNames[folder.id]}</td>
-                          <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(folder.size))
-                              : binaryStorageConversion(Number(folder.size))}
-                          </td>
-                          <td>{userNames[folder.user_id]}</td>
-                          <td>{folder.updated_at || folder.created_at}</td>
-                        </tr>
-                      ))}*/}
-                      {files.map((file: any) => (
-                        <tr key={file.id}>
-                          <td>{file.name}</td>
-                          <td>{userNames[file.user_id]}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(file.size))
-                              : binaryStorageConversion(Number(file.size))}
-                          </td>
-                          <td>{convertToLocaleString(file.updated_at)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  )}
-                </table>
-              </>
-            )}
-          </div>
-        );
+        return files.length === 0 ? <NoFiles /> : <>{renderTable()}</>;
       case "shared":
-        return (
-          <div id="shared" className="dashboard-section">
-            {files.length == 0 ? (
-              <NoShared />
-            ) : (
-              <>
-                <h2>Shared With Me</h2>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Owner</th>
-                      <th>Size</th>
-                      <th>Last Modified</th>
-                    </tr>
-                  </thead>
-                  {userFiles == null || undefined ? (
-                    <tbody>
-                      <tr>
-                        <td>File 3</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                      <tr>
-                        <td>File 4</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                    </tbody>
-                  ) : (
-                    <tbody>
-                      {/*{folders.map((folder: any) => (
-                        <tr key={folder.id}>
-                          <td>{folderNames[folder.id]}</td>
-                          <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(folder.size))
-                              : binaryStorageConversion(Number(folder.size))}
-                          </td>
-                          <td>{userNames[folder.user_id]}</td>
-                          <td>{folder.updated_at || folder.created_at}</td>
-                        </tr>
-                      ))}*/}
-                      {files.map((file: any) => (
-                        <tr key={file.id}>
-                          <td>{file.name}</td>
-                          <td>{userNames[file.user_id]}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(file.size))
-                              : binaryStorageConversion(Number(file.size))}
-                          </td>
-                          <td>{convertToLocaleString(file.updated_at)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  )}
-                </table>
-              </>
-            )}
-          </div>
-        );
+        return <NoShared />;
+      case "trash":
+        return <EmptyTrash />;
+      case "starred":
+        return <NoStarred />;
       case "storage":
         return (
-          <div id="storage" className="dashboard-section">
-            <h2>Storage</h2>
-            <div className="storage-info">
-              <p>Total Storage: {storage}</p>
-              <p>Used Storage: {usedStorage}</p>
-              <p>Used Storage Percentage: {usedStoragePercentage}%</p>
-            </div>
+          <div>
+            <p>Total: {storage}</p>
+            <p>Used: {usedStorage}</p>
+            <p>{usedStoragePercentage}%</p>
             <Progress value={usedStoragePercentage} />
           </div>
         );
-      case "starred":
-        return (
-          <div id="starred" className="dashboard-section">
-            {files.length == 0 ? (
-              <NoStarred />
-            ) : (
-              <>
-                <h2>Starred Files</h2>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Owner</th>
-                      <th>Size</th>
-                      <th>Modified</th>
-                    </tr>
-                  </thead>
-                  {userFiles == null || undefined ? (
-                    <tbody>
-                      <tr>
-                        <td>File 3</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                      <tr>
-                        <td>File 4</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                    </tbody>
-                  ) : (
-                    <tbody>
-                      {/*{folders.map((folder: any) => (
-                        <tr key={folder.id}>
-                          <td>{folderNames[folder.id]}</td>
-                          <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(folder.size))
-                              : binaryStorageConversion(Number(folder.size))}
-                          </td>
-                          <td>{userNames[folder.user_id]}</td>
-                          <td>{folder.updated_at || folder.created_at}</td>
-                        </tr>
-                      ))}*/}
-                      {files.map((file: any) => (
-                        <tr key={file.id}>
-                          <td>{file.name}</td>
-                          <td>{userNames[file.user_id]}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(file.size))
-                              : binaryStorageConversion(Number(file.size))}
-                          </td>
-                          <td>{convertToLocaleString(file.updated_at)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  )}
-                </table>
-              </>
-            )}
-          </div>
-        );
-      case "trash":
-        return (
-          <div id="trash" className="dashboard-section">
-            {files.length == 0 ? (
-              <EmptyTrash />
-            ) : (
-              <>
-                <h2>Trash</h2>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Owner</th>
-                      <th>Size</th>
-                      <th>Modified</th>
-                    </tr>
-                  </thead>
-                  {userFiles == null || undefined ? (
-                    <tbody>
-                      <tr>
-                        <td>File 3</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                      <tr>
-                        <td>File 4</td>
-                        <td>100</td>
-                        <td>John Doe</td>
-                        <td>2021-01-01</td>
-                      </tr>
-                    </tbody>
-                  ) : (
-                    <tbody>
-                      {/*Render folders first*/}
-                      {/*{folders.map((folder: any) => (
-                        <tr key={folder.id}>
-                          <td>{folderNames[folder.id]}</td>
-                          <td>{folderNames[folder.parent_id] || "--"}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(folder.size))
-                              : binaryStorageConversion(Number(folder.size))}
-                          </td>
-                          <td>{userNames[folder.user_id]}</td>
-                          <td>{folder.updated_at || folder.created_at}</td>
-                        </tr>
-                      ))}*/}
-                      {files.map((file: any) => (
-                        <tr key={file.id}>
-                          <td>{file.name}</td>
-                          <td>{userNames[file.user_id]}</td>
-                          <td>
-                            {decimalStorage
-                              ? decimalStorageConversion(Number(file.size))
-                              : binaryStorageConversion(Number(file.size))}
-                          </td>
-                          <td>{convertToLocaleString(file.updated_at)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  )}
-                </table>
-              </>
-            )}
-          </div>
-        );
+      default:
+        return null;
     }
   };
 
   return userNames != null && user != null ? (
     <div className="dashboard-page">
-      {notification && renderNotification(notification)}
       <DashboardNavBar
-        name={name}
-        email={email}
+        name={userNames[user.id] || name}
+        email={user.email || email}
         usedStoragePercentage={usedStoragePercentage}
         avatarUrl={avatarUrl}
         notification={notification}
@@ -487,10 +181,13 @@ const Dashboard = () => {
           setNotification={setNotification}
           token={token}
         />
-        <div className="dashboard-content">
-          {/* Dynamically Render Content */}
-          {renderSection(activeButton)}
-        </div>
+        <div className="dashboard-content">{renderSection()}</div>
+        {notification && (
+          <div className={`toast-notification ${notification.type}`}>
+            <p className="toast-title">{notification.message}</p>
+            <p>{notification.description}</p>
+          </div>
+        )}
       </div>
     </div>
   ) : (
