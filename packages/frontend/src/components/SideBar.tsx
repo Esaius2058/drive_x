@@ -30,7 +30,7 @@ type SideBarProps = {
   activeButton: SideBarTab;
   setActiveButton: React.Dispatch<React.SetStateAction<SideBarTab>>;
   usedStorage: string;
-  setusedStorage: string;
+  setusedStorage: React.Dispatch<React.SetStateAction<string>>;
   storage: string;
   usedStoragePercentage: number;
   setNotification: React.Dispatch<React.SetStateAction<Notification | null>>;
