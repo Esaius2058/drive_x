@@ -36,7 +36,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <h1 className="text-xl font-bold">Something went wrong.</h1>
           <h2>{this.state.error?.message}</h2>
           <button className="primary-btn" onClick={this.handleRedirect}>
-            To Login
+            To Log In
           </button>
         </div>
       );
