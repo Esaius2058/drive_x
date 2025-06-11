@@ -53,7 +53,7 @@ const Dashboard = () => {
   const location = useLocation();
   const { userFiles } = location.state || {};
 
-  const { files, userNames, token, usedStorage: totalStorageUsed } = userFiles;
+  const { files = [], userNames = {}, token, usedStorage: totalStorageUsed = 0 } = userFiles;
   const { user } = useAuth();
   const name = "John Doe";
   const email = "john324@gmail.com";
