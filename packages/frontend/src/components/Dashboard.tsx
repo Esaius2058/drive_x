@@ -5,6 +5,7 @@ import { SideBar } from "./SideBar";
 import { Progress } from "./Progress";
 import { NoFiles, EmptyTrash, NoShared, NoStarred } from "./404";
 import { useLocation } from "react-router-dom";
+import { LoadingDashboard } from "./LoadingScreen";
 import { useAuth } from "./AuthContext";
 
 const binaryStorageConversion = (bytes: number) => {
@@ -107,7 +108,7 @@ const Dashboard = () => {
 
     const formatted = date.toLocaleString();
     return formatted;
-  }
+  };
 
   const renderSection = (activeButton: SidebarTab) => {
     switch (activeButton) {
@@ -457,7 +458,8 @@ const Dashboard = () => {
         );
     }
   };
-  return (
+
+  return userNames != null && user != null ? (
     <div className="dashboard-page">
       {notification && renderNotification(notification)}
       <DashboardNavBar
@@ -479,17 +481,20 @@ const Dashboard = () => {
           activeButton={activeButton}
           setActiveButton={setActiveButton}
           usedStorage={usedStorage}
-          setusedStorage={usedStorage}
+          setusedStorage={setUsedStorage}
           storage={storage}
           usedStoragePercentage={usedStoragePercentage}
           setNotification={setNotification}
           token={token}
         />
         <div className="dashboard-content">
-          {/*Dynamically Render Content*/ renderSection(activeButton)}
+          {/* Dynamically Render Content */}
+          {renderSection(activeButton)}
         </div>
       </div>
     </div>
+  ) : (
+    <LoadingDashboard />
   );
 };
 
