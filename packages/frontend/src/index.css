@@ -227,16 +227,22 @@ input {
   gap: 15px;
 }
 .primary-btn {
+  min-width: 150px;
+  min-height: 40px;
   background-color: var(--navy);
   color: var(--white);
   box-shadow: 0px 2px 5px var(--gray);
 }
 .secondary-btn {
+  min-width: 150px;
+  min-height: 40px;
   background-color: transparent;
   color: var(--navy);
   border: 1px solid var(--navy);
 }
 .tertiary-btn {
+  min-width: 150px;
+  min-height: 40px;
   background: var(--light-gray);
   color: var(--navy);
 }
@@ -401,6 +407,25 @@ input {
   border-radius: 5px;
   color: rgb(229, 62, 62);
   text-align: center;
+}
+
+/*Loading Spinner*/
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.spinner {
+  border: 5px solid var(--white);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  padding: 4px;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /*Skeleton Page*/
@@ -648,7 +673,7 @@ div span {
   transition: background 0.2s ease;
 }
 .avatar-button:hover {
-  background-color: #f2f2f2;
+  background-color: var(--medium-gray);
 }
 .avatar-image {
   width: 40px;
