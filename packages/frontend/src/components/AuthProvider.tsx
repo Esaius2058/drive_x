@@ -48,23 +48,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsAdmin(false);
           setLoading(false); // Ensure loading is false
           console.log("Redirecting to login due to expired token");
+          setNotification({
+            message: "Your session is expired",
+            type: "warning",
+            description: "Redirecting to login due to expired token",
+          });
 
           const navigate = useNavigate();
           navigate("/auth/login"); // Redirect to login page
-          //window.location.href = "/auth/login"; // Redirect to login
+
           await logoutUser();
         }
       });
     } else {
       console.warn("No token found in localStorage, setting loading to false");
-      setLoading(false); // No token means we can stop loading
+      setLoading(false);
     }
   }, [token]);
 
   async function getProfile() {
     try {
-      setLoading(true); // Set loading to true at start
-
       const userData = await fetchUserProfile();
 
       // Handle case where userData is undefined (fetch failed)
@@ -84,8 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Error in getProfile:", error);
       // You might want to handle errors here (e.g., show error message to user)
-    } finally {
-      setLoading(false); // Ensure loading is always set to false
     }
   }
 
@@ -96,13 +97,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string
   ) {
     try {
+      setLoading(true);
       const user = await signUpUser(firstname, lastname, email, password);
       const storedToken = localStorage.getItem("token");
 
       setUser(user);
       setToken(storedToken);
+      console.log("User signed up:", user); // Single consolidated log
+
+      // fetch and set user profile
+      await getProfile();
     } catch (error: any) {
-      if (error.status === 422) {
+      if (error.status == 422) {
         setNotification({
           message: "User already exists. Login instead.",
         });
@@ -111,6 +117,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           message: "Unexpected error. Try again.",
         });
       }
+
+      throw error;
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -120,13 +130,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // authenticate user with the server
       const user = await loginUser(email, password);
       if (!user) {
-        throw new Error("Login failed: No user data returned");
+        setNotification({
+          message: "Login failed: No user data returned",
+        });
+        return; // exit early without throwing
       }
 
       // retrieve and validate token
       const storedToken = localStorage.getItem("token");
       if (!storedToken) {
-        throw new Error("No authentication token found");
+        setNotification({
+          message: "No authentication token found. Try again.",
+        });
+        return;
       }
 
       // update client-side state
@@ -136,13 +152,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // fetch and set user profile
       await getProfile();
-    } catch (error) {
-      console.error("Login error:", error);
-
+    } catch (error: any) {
+      setLoading(false);
+      if (error.status == 400) {
+        setNotification({
+          message: "Invalid Email or Password. Try again.",
+        });
+      } else {
+        setNotification({
+          message: "Unexpected error. Try again.",
+        });
+      }
+      console.error(error);
       // clear state on failure to avoid inconsistencies
       setUser(null);
       setToken(null);
-      localStorage.removeItem("token"); // ensure no stale token remains
+      localStorage.removeItem("token");
+
+      throw error;
     } finally {
       setLoading(false); // ensure loading state is reset
     }
