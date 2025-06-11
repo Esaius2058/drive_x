@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
-import LoadingDashboard from "./LoadingScreen";
+import { LoadingSpinner } from "./LoadingScreen";
 
 const SignUp = () => {
   interface Notification {
@@ -19,7 +19,14 @@ const SignUp = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
 
-  const { loading, setLoading, signup, login, userFiles, isAdmin, notification: authNotification } = useAuth();
+  const {
+    loading,
+    signup,
+    login,
+    userFiles,
+    isAdmin,
+    notification: authNotification,
+  } = useAuth();
 
   const navigate = useNavigate();
   const path = isAdmin ? "/admin-dashboard" : "/dashboard";
@@ -29,14 +36,14 @@ const SignUp = () => {
       navigate(`${path}`, { state: { userFiles } });
     }
 
-    if (notification) {
+    if (notification || authNotification) {
       const timeout = setTimeout(() => {
         setNotification(null);
       }, 10000);
 
       return () => clearTimeout(timeout);
     }
-  }, [loading, isAuthenticated, notification]);
+  }, [loading, notification]); // did not include isAuthenticated because it is dependent on loading state
 
   const signupForm = useRef<HTMLFormElement>(null);
   const loginForm = useRef<HTMLFormElement>(null);
@@ -59,7 +66,7 @@ const SignUp = () => {
 
     if (!regex.test(email)) {
       setNotification({
-        message: "Please enter a valid email address."
+        message: "Please enter a valid email address.",
       });
       return false;
     }
@@ -116,84 +123,102 @@ const SignUp = () => {
     e.preventDefault();
 
     const form = signupForm.current;
-    if (!form) return;
-
-    const formData = new FormData(form);
-
-    const firstName = formData.get("firstname") as string;
-    const lastName = formData.get("lastname") as string;
-
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-
-    const emailValidation = validateEmail(email);
-    const passwordValidation = validatePassword(password);
-
-    if(emailValidation === false){
+    if (!form) {
+      setNotification({ message: "Form is not available." });
       return;
     }
 
-    if (passwordValidation === false) {
-      return;
+    try {
+      const formData = new FormData(form);
+
+      const firstName = formData.get("firstname") as string;
+      const lastName = formData.get("lastname") as string;
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
+      if (!firstName || !lastName || !email || !password) {
+        setNotification({ message: "Please fill out all required fields." });
+        return;
+      }
+
+      const emailValidation = validateEmail(email);
+      if (!emailValidation) {
+        setNotification({ message: "Invalid email format." });
+        return;
+      }
+
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation) {
+        setNotification({ message: "Password does not meet criteria." });
+        return;
+      }
+
+      setInitializedAuth(true);
+
+      if (authNotification) {
+        setNotification({ message: authNotification.message });
+      }
+
+      await signup(firstName, lastName, email, password);
+      setIsAuthenticated(true);
+    } catch (error: any) {
+      console.error("Login failed:", error);
+    } finally {
+      setTimeout(() => {
+        setInitializedAuth(false);
+      }, 3000);
     }
-
-    setInitializedAuth(true);
-
-    if(authNotification != null){
-      setNotification({
-        message: authNotification.message
-      });
-    }
-
-    await signup(firstName, lastName, email, password);
-
-    setIsAuthenticated(true);
-    setTimeout(() => {
-      setInitializedAuth(false);
-      setLoading(false);
-    }, 3000);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const form = loginForm.current;
-    if (!form) {
-      console.warn("loginForm ref is null");
-      return;
+    try {
+      const form = loginForm.current;
+      if (!form) {
+        console.warn("loginForm ref is null");
+        return;
+      }
+
+      const formData = new FormData(form);
+
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
+      if (!email || !password) {
+        console.warn("Email or password is missing from the form.");
+        setNotification({ message: "Please fill in all required fields." });
+        return;
+      }
+
+      setInitializedAuth(true);
+
+      if (authNotification) {
+        setNotification({ message: authNotification.message });
+      }
+
+      await login(email, password);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error("Login failed:", error);
+    } finally {
+      setTimeout(() => {
+        setInitializedAuth(false);
+      }, 3000);
     }
-
-    const formData = new FormData(form);
-
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-
-    setInitializedAuth(true);
-
-    await login(email, password);
-
-    //handle loading state
-    //handle error state
-    setIsAuthenticated(true);
-    setTimeout(() => {
-      setInitializedAuth(false);
-      setLoading(false);
-    }, 3000);
   };
 
   const renderNotification = (notification: Notification) => {
     return (
       <div className={`auth-notification`}>
         <p>{notification.message}</p>
+        <p>{notification?.description}</p>
       </div>
     );
   };
 
-  if (loading && initializedAuth) {
-    console.log("Loading State(SignUp):", loading);
-    return <LoadingDashboard />;
-  }
-
+  console.log("Notification:", notification);
+  
   return (
     <div className="auth-page">
       <div className="auth-form">
@@ -236,7 +261,7 @@ const SignUp = () => {
             />
             {notification && renderNotification(notification)}
             <button type="submit" className="primary-btn">
-              {authHeader}
+              {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
             </button>
           </form>
         ) : (
@@ -252,7 +277,7 @@ const SignUp = () => {
             <div className="button-div">
               <button className="secondary-btn">Forgot Password?</button>
               <button type="submit" className="primary-btn">
-                {authHeader}
+                {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
               </button>
             </div>
           </form>
