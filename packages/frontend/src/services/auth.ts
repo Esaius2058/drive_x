@@ -16,11 +16,16 @@ export async function loginUser(email: string, password: string) {
     });
 
     const contentType = res.headers.get("content-type");
-    if (!res.ok) throw new Error(`HTTP error! ${res.status}`);
-    if (!contentType?.includes("application/json")) {
-      const text = await res.text(); // See what's really returned
-      console.error("Expected JSON, got:", text);
-      return;
+    const isJson = contentType?.includes("application/json");
+    if (!res.ok){
+      const errorBody = isJson ? await res.json() : { message: await res.text() };
+      const error = new Error(errorBody || "Unknown error");
+      (error as any).message = errorBody.message;
+      (error as any).type = errorBody.type;
+      (error as any).name = errorBody.error.name;
+      (error as any).status = errorBody.error.status;
+
+      throw error;
     }
 
     const data = await res.json();
@@ -30,7 +35,7 @@ export async function loginUser(email: string, password: string) {
 
     return data.user;
   } catch (error: any) {
-    console.error("error during log in", error);
+    throw error;
   }
 }
 
@@ -54,12 +59,14 @@ export async function signUpUser(
 
     if (!res.ok){
       const errorBody = isJson ? await res.json() : { message: await res.text() };
-      const error = new Error(errorBody.message || "Unknown error");
+      const error = new Error(errorBody || "Unknown error");
+      (error as any).message = errorBody.message;
+      (error as any).type = errorBody.type;
+      (error as any).name = errorBody.error.name;
       (error as any).status = errorBody.error.status;
       throw error;
     }
     
-
     const data = await res.json();
 
     // Save the token
@@ -67,7 +74,6 @@ export async function signUpUser(
 
     return data.user;
   } catch (error: any) {
-    console.error("Sign Up Error", error);
     throw error;
   }
 }
@@ -101,7 +107,6 @@ export async function fetchUserProfile() {
     console.log("User Files(fetchUserProfile)", data);
     return data;
   } catch (err) {
-    console.error("Error fetching user files:", err);
     throw err;
   }
 }
