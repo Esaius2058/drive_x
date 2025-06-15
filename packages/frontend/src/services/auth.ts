@@ -103,8 +103,7 @@ export async function fetchUserProfile() {
     if (!data) {
       throw new Error("No data received from server");
     }
-
-    console.log("User Files(fetchUserProfile)", data);
+    
     return data;
   } catch (err) {
     throw err;
