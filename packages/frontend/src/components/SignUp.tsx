@@ -18,6 +18,8 @@ const SignUp = () => {
   const [initializedAuth, setInitializedAuth] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
+  const [emailErr, setEmailErr] = useState<string>("");
+  const [passwordErr, setPasswordErr] = useState<string>("");
 
   const {
     loading,
@@ -65,12 +67,11 @@ const SignUp = () => {
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     if (!regex.test(email)) {
-      setNotification({
-        message: "Please enter a valid email address.",
-      });
+      setEmailErr("Please enter a valid email address.");
       return false;
     }
 
+    setEmailErr("");
     return true;
   };
 
@@ -82,40 +83,31 @@ const SignUp = () => {
     const hasSpecialChar = /[!@#$%^&*(){}|<>,.":]/.test(password);
 
     if (password.length < minLength) {
-      setNotification({
-        message: "Password must at least 8 characters long.",
-      });
+      setPasswordErr("Password must at least 8 characters long.");
       return false;
     }
 
     if (!hasUpperCase) {
-      setNotification({
-        message: "Password must contain at least one uppercase letter.",
-      });
+      setPasswordErr("Password must contain at least one uppercase letter.");
       return false;
     }
 
     if (!hasLowerCase) {
-      setNotification({
-        message: "Password must contain at least one lowercase letter.",
-      });
+      setPasswordErr("Password must contain at least one lowercase letter.");
       return false;
     }
 
     if (!hasNumber) {
-      setNotification({
-        message: "Password must contain at least one number.",
-      });
+      setPasswordErr("Password must contain at least one number.");
       return false;
     }
 
     if (!hasSpecialChar) {
-      setNotification({
-        message: "Password must contain at least one special character.",
-      });
+      setPasswordErr("Password must contain at least one special character.");
       return false;
     }
 
+    setPasswordErr("");
     return true;
   };
 
@@ -141,18 +133,10 @@ const SignUp = () => {
         return;
       }
 
-      const emailValidation = validateEmail(email);
-      if (!emailValidation) {
-        setNotification({ message: "Invalid email format." });
-        return;
-      }
+      if (!validateEmail(email)) return;
 
-      const passwordValidation = validatePassword(password);
-      if (!passwordValidation) {
-        setNotification({ message: "Password does not meet criteria." });
-        return;
-      }
-
+      if (!validatePassword(password)) return;
+      
       setInitializedAuth(true);
 
       if (authNotification) {
@@ -160,6 +144,7 @@ const SignUp = () => {
       }
 
       await signup(firstName, lastName, email, password);
+      setNotification(null);
       setIsAuthenticated(true);
     } catch (error: any) {
       console.error("Login failed:", error);
@@ -185,12 +170,6 @@ const SignUp = () => {
       const email = formData.get("email") as string;
       const password = formData.get("password") as string;
 
-      if (!email || !password) {
-        console.warn("Email or password is missing from the form.");
-        setNotification({ message: "Please fill in all required fields." });
-        return;
-      }
-
       setInitializedAuth(true);
 
       if (authNotification) {
@@ -198,6 +177,8 @@ const SignUp = () => {
       }
 
       await login(email, password);
+
+      setNotification(null);
       setIsAuthenticated(true);
     } catch (error) {
       console.error("Login failed:", error);
@@ -217,7 +198,6 @@ const SignUp = () => {
     );
   };
 
-  console.log("Notification:", notification);
   
   return (
     <div className="auth-page">
@@ -253,12 +233,14 @@ const SignUp = () => {
               required
             />
             <input name="email" type="email" placeholder="email" required />
+            {emailErr && <div className="auth-notification">{emailErr}</div>}
             <input
               name="password"
               type="password"
               placeholder="password"
               required
             />
+            {passwordErr && <div className="auth-notification">{passwordErr}</div>}
             {notification && renderNotification(notification)}
             <button type="submit" className="primary-btn">
               {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
@@ -275,7 +257,7 @@ const SignUp = () => {
             />
             {notification && renderNotification(notification)}
             <div className="button-div">
-              <button className="secondary-btn">Forgot Password?</button>
+              <button className="tertiary-btn">Forgot Password?</button>
               <button type="submit" className="primary-btn">
                 {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
               </button>
