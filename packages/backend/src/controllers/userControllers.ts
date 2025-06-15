@@ -367,6 +367,7 @@ export const getProfile = async (
 
     const role = userRole?.role;
     var profile = {
+      user,
       userNames,
       files,
       role,
