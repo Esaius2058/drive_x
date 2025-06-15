@@ -50,11 +50,9 @@ const Dashboard = () => {
     description?: string; // milliseconds
   }
 
-  const location = useLocation();
-  const { userFiles } = location.state || {};
-
-  const { files = [], userNames = {}, token, usedStorage: totalStorageUsed = 0 } = userFiles;
-  const { user } = useAuth();
+  const { userFiles } = useAuth();
+  const { user, files = [], userNames = {}, token, usedStorage: totalStorageUsed = 0 } = userFiles;
+  
   const name = "John Doe";
   const email = "john324@gmail.com";
   const avatarUrl = ``;
@@ -154,7 +152,7 @@ const Dashboard = () => {
     }
   };
 
-  return userNames != null && user != null ? (
+  return user ? (
     <div className="dashboard-page">
       <DashboardNavBar
         name={userNames[user.id] || name}
