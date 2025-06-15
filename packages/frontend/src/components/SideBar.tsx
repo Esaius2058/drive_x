@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Progress } from "./Progress";
 import { useRef, useState } from "react";
 import { uploadSingleFile } from "../services/upload";
+import { LoadingSpinner } from "./LoadingScreen";
 
 type SideBarTab =
   | "recent"
@@ -73,8 +74,8 @@ const SideBar = ({
     const form = uploadForm.current;
     if (!form) return;
 
-
     try {
+      setIsUploading(true);
       const formData = new FormData();
       const fileInput = form.querySelector(
         'input[type="file"]'
@@ -107,6 +108,8 @@ const SideBar = ({
           description: "There was an error uploading your file. Please try again.",
           type: "error",
         });
+    } finally {
+      setIsUploading(false);
     }
 
     const handleUploadFolder = async (e: React.FormEvent) => {
@@ -200,7 +203,7 @@ const SideBar = ({
             required
           />
           <button type="submit" className="primary-btn">
-            Upload
+            {isUploading ? <LoadingSpinner /> : "Upload"}
           </button>
         </form>
       </div>
