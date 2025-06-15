@@ -34,37 +34,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [notification, setNotification] = useState<Notification | null>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
+    const init = async () => {
+      const storedToken = localStorage.getItem("token");
+
+      if (!storedToken) {
+        console.warn("No token found in localStorage.");
+        setLoading(false);
+        return;
+      }
+
       setToken(storedToken);
-      // Check if the token is expired
-      isJWTExpired(storedToken).then(async (expired) => {
-        if (expired) {
-          console.warn("JWT token is expired, clearing state");
-          // If expired, clear the state
-          setUser(null);
-          setToken(null);
-          setUserFiles({});
-          setIsAdmin(false);
-          setLoading(false); // Ensure loading is false
-          console.log("Redirecting to login due to expired token");
-          setNotification({
-            message: "Your session is expired",
-            type: "warning",
-            description: "Redirecting to login due to expired token",
-          });
 
-          const navigate = useNavigate();
-          navigate("/auth/login"); // Redirect to login page
+      const expired = await isJWTExpired(storedToken);
+      if (expired) {
+        console.warn("JWT token is expired. Logging out.");
 
-          await logoutUser();
-        }
-      });
-    } else {
-      console.warn("No token found in localStorage, setting loading to false");
-      setLoading(false);
-    }
-  }, [token]);
+        setUser(null);
+        setToken(null);
+        setUserFiles({});
+        setIsAdmin(false);
+
+        setNotification({
+          message: "Your session has expired",
+          type: "warning",
+          description: "Redirecting to login...",
+        });
+
+        await logoutUser();
+        const navigate = useNavigate();
+        navigate("/auth/login");
+        return;
+      }
+
+      try {
+        await getProfile();
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, []);
 
   async function getProfile() {
     try {
