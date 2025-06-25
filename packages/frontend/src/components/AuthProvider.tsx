@@ -110,9 +110,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) {
     try {
       setLoading(true);
-      const user = await signUpUser(firstname, lastname, email, password);
+      const { user, session } = await signUpUser(
+        firstname,
+        lastname,
+        email,
+        password
+      );
       const storedToken = localStorage.getItem("token");
 
+      if (user && !session) {
+        setNotification({
+          message: "Confirmation email sent!",
+          type: "info",
+          description:
+            "Please check your inbox and follow the link to verify your email before logging in.",
+        });
+
+        return;
+      }
       setUser(user);
       setToken(storedToken);
       console.log("User signed up:", user); // Single consolidated log
@@ -123,10 +138,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.status == 422) {
         setNotification({
           message: "User already exists. Login instead.",
+          type: "warning"
         });
       } else {
         setNotification({
           message: "Unexpected error. Try again.",
+          type: "warning"
         });
       }
 
@@ -144,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!user) {
         setNotification({
           message: "Login failed: No user data returned",
+          type: "warning"
         });
         return; // exit early without throwing
       }
@@ -153,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!storedToken) {
         setNotification({
           message: "No authentication token found. Try again.",
+          type: "warning"
         });
         return;
       }
@@ -169,10 +188,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.status == 400) {
         setNotification({
           message: "Invalid Email or Password. Try again.",
+          type: "warning"
         });
       } else {
         setNotification({
           message: "Unexpected error. Try again.",
+          type: "warning"
         });
       }
       console.error(error);
