@@ -7,6 +7,7 @@ import { NoFiles, EmptyTrash, NoShared, NoStarred } from "./404";
 import { useLocation } from "react-router-dom";
 import { LoadingDashboard } from "./LoadingScreen";
 import { useAuth } from "./AuthContext";
+import { File } from "lucide-react";
 
 const binaryStorageConversion = (bytes: number) => {
   const kb = bytes / 1024;
@@ -51,8 +52,14 @@ const Dashboard = () => {
   }
 
   const { userFiles } = useAuth();
-  const { user, files = [], userNames = {}, token, usedStorage: totalStorageUsed = 0 } = userFiles;
-  
+  const {
+    user,
+    files = [],
+    userNames = {},
+    token,
+    usedStorage: totalStorageUsed = 0,
+  } = userFiles;
+
   const name = "John Doe";
   const email = "john324@gmail.com";
   const avatarUrl = ``;
@@ -99,39 +106,60 @@ const Dashboard = () => {
     return formatted;
   };
 
-  const renderTable = () => (
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Owner</th>
-          <th>Size</th>
-          <th>Modified</th>
-        </tr>
-      </thead>
-      <tbody>
-        {files.map((file: any) => (
-          <tr key={file.id}>
-            <td>{file.name}</td>
-            <td>{userNames[file.user_id]}</td>
-            <td>
-              {decimalStorage
-                ? decimalStorageConversion(Number(file.size))
-                : binaryStorageConversion(Number(file.size))}
-            </td>
-            <td>{convertToLocaleString(file.updated_at)}</td>
+  const renderDesktopTable = () => (
+    <div className="file-table desktop-only">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Owner</th>
+            <th>Size</th>
+            <th>Modified</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {files.map((file: any) => (
+            <tr key={file.id}>
+              <td className="filename-cell">{file.name}</td>
+              <td>{userNames[file.user_id]}</td>
+              <td>
+                {decimalStorage
+                  ? decimalStorageConversion(Number(file.size))
+                  : binaryStorageConversion(Number(file.size))}
+              </td>
+              <td>{convertToLocaleString(file.updated_at)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 
-  const renderSection = () => {
+  //file table for mobile
+  const renderMobileTable = () => (
+    <div className="file-table mobile-only">
+      {files.map((file: any) => (
+        <div key={file.id} className="file-item">
+          <File size={50} />
+          <div className="file-details">
+            <div className="file-name">{file.name}</div>
+            <div className="file-owner">
+              {userNames[file.user_id]} -{" "}
+              {convertToLocaleString(file.updated_at)}
+            </div>
+          </div>
+          <button className="file-menu-btn">⋮</button>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderList = () => {
     switch (activeButton) {
       case "recent":
-        return files.length === 0 ? <NoFiles /> : <>{renderTable()}</>;
+        return files.length === 0 ? <NoFiles /> : <>{renderDesktopTable()}{renderMobileTable()}</>;
       case "my-files":
-        return files.length === 0 ? <NoFiles /> : <>{renderTable()}</>;
+        return files.length === 0 ? <NoFiles /> : <>{renderDesktopTable()}{renderMobileTable()}</>;
       case "shared":
         return <NoShared />;
       case "trash":
@@ -152,6 +180,54 @@ const Dashboard = () => {
     }
   };
 
+  const desktopDashbody = () => {
+    return (
+      <div className="dashboard-body desktop-only">
+        <SideBar
+          activeButton={activeButton}
+          setActiveButton={setActiveButton}
+          usedStorage={usedStorage}
+          setusedStorage={setUsedStorage}
+          storage={storage}
+          usedStoragePercentage={usedStoragePercentage}
+          setNotification={setNotification}
+          token={token}
+        />
+        <div className="dashboard-content">{renderList()}</div>
+        {notification && (
+          <div className={`toast-notification ${notification.type}`}>
+            <p className="toast-title">{notification.message}</p>
+            <p>{notification.description}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const mobileDashbody = () => {
+    return (
+      <div className="dashboard-body mobile-only">
+        <div className="dashboard-content">{renderList()}</div>
+        <SideBar
+          activeButton={activeButton}
+          setActiveButton={setActiveButton}
+          usedStorage={usedStorage}
+          setusedStorage={setUsedStorage}
+          storage={storage}
+          usedStoragePercentage={usedStoragePercentage}
+          setNotification={setNotification}
+          token={token}
+        />
+        {notification && (
+          <div className={`toast-notification ${notification.type}`}>
+            <p className="toast-title">{notification.message}</p>
+            <p>{notification.description}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return user ? (
     <div className="dashboard-page">
       <DashboardNavBar
@@ -168,25 +244,8 @@ const Dashboard = () => {
         binaryStorageConversion={binaryStorageConversion}
         decimalStorageConversion={decimalStorageConversion}
       />
-      <div className="dashboard-body">
-        <SideBar
-          activeButton={activeButton}
-          setActiveButton={setActiveButton}
-          usedStorage={usedStorage}
-          setusedStorage={setUsedStorage}
-          storage={storage}
-          usedStoragePercentage={usedStoragePercentage}
-          setNotification={setNotification}
-          token={token}
-        />
-        <div className="dashboard-content">{renderSection()}</div>
-        {notification && (
-          <div className={`toast-notification ${notification.type}`}>
-            <p className="toast-title">{notification.message}</p>
-            <p>{notification.description}</p>
-          </div>
-        )}
-      </div>
+      {mobileDashbody()}
+      {desktopDashbody()}
     </div>
   ) : (
     <LoadingDashboard />
