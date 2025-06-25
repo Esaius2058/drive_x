@@ -72,7 +72,9 @@ export async function signUpUser(
     // Save the token
     localStorage.setItem("token", data.session.access_token);
 
-    return data.user;
+    let user = data.user;
+    let session = data.session;
+    return {user, session};
   } catch (error: any) {
     throw error;
   }
