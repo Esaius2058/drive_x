@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { LoadingSpinner } from "./LoadingScreen";
+import { Alert, AlertDescription, AlertTitle } from "./Alert";
 
 const SignUp = () => {
   interface Notification {
@@ -30,6 +31,7 @@ const SignUp = () => {
     notification: authNotification,
   } = useAuth();
 
+  const location = useLocation();
   const navigate = useNavigate();
   const path = isAdmin ? "/admin-dashboard" : "/dashboard";
 
@@ -38,6 +40,17 @@ const SignUp = () => {
       navigate(`${path}`, { state: { userFiles } });
     }
 
+    if (location.pathname.includes("login")) {
+      setAuthType("log-in");
+      setAuthHeader("Log In");
+      setAuthIntro("Don't");
+      setAuthCTA("Sign Up");
+    } else {
+      setAuthType("sign-up");
+      setAuthHeader("Sign Up");
+      setAuthIntro("Already");
+      setAuthCTA("Log In");
+    }
     if (notification || authNotification) {
       const timeout = setTimeout(() => {
         setNotification(null);
@@ -136,10 +149,10 @@ const SignUp = () => {
       if (!validateEmail(email)) return;
 
       if (!validatePassword(password)) return;
-      
+
       setInitializedAuth(true);
 
-      if (authNotification) {
+      if (authNotification && authNotification.type != "info") {
         setNotification({ message: authNotification.message });
       }
 
@@ -172,7 +185,7 @@ const SignUp = () => {
 
       setInitializedAuth(true);
 
-      if (authNotification) {
+      if (authNotification && authNotification.type != "info") {
         setNotification({ message: authNotification.message });
       }
 
@@ -198,7 +211,6 @@ const SignUp = () => {
     );
   };
 
-  
   return (
     <div className="auth-page">
       <div className="auth-form">
@@ -240,8 +252,16 @@ const SignUp = () => {
               placeholder="password"
               required
             />
-            {passwordErr && <div className="auth-notification">{passwordErr}</div>}
+            {passwordErr && (
+              <div className="auth-notification">{passwordErr}</div>
+            )}
             {notification && renderNotification(notification)}
+            {authNotification?.type == "info" && (
+              <Alert variant="default" className="mb-4">
+                <AlertTitle>{authNotification.message}</AlertTitle>
+                <AlertDescription>{authNotification.description}</AlertDescription>
+              </Alert>
+            )}
             <button type="submit" className="primary-btn">
               {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
             </button>
@@ -256,8 +276,14 @@ const SignUp = () => {
               required
             />
             {notification && renderNotification(notification)}
+            {authNotification?.type == "info" && (
+              <Alert variant="default" className="mb-4">
+                <AlertTitle>{authNotification.message}</AlertTitle>
+                <AlertDescription>{authNotification.description}</AlertDescription>
+              </Alert>
+            )}
             <div className="button-div">
-              <button className="tertiary-btn">Forgot Password?</button>
+              <button className="forgot-password">Forgot Password?</button>
               <button type="submit" className="primary-btn">
                 {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
               </button>
