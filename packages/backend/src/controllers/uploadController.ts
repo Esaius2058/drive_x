@@ -63,17 +63,19 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
     if (uploadError) throw newUploadError;
 
     // Insert metadata into the database
-    const { error: dbError } = await supabase.from("file_metadata").insert([
-      {
-        id: data.id,
-        user_id: userId,
-        name: file.originalname,
-        type: file.mimetype,
-        storage_path: data.path,
-        stored_name: file.filename,
-        size: file.size,
-      },
-    ]);
+    const { data: dbData, error: dbError } = await supabase
+      .from("file_metadata")
+      .insert([
+        {
+          id: data.id,
+          user_id: userId,
+          name: file.originalname,
+          type: file.mimetype,
+          storage_path: data.path,
+          stored_name: file.filename,
+          size: file.size,
+        },
+      ]);
 
     const newDbError = {
       ...dbError,
@@ -81,6 +83,22 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
     };
 
     if (dbError) throw newDbError;
+
+    const insertedFile = dbData?.[0]; 
+
+    const { error: fileLogError } = await supabase.from("FileLogs").insert([
+      {
+        file_id: data.id,
+        action: "created",
+        user_id: userId,
+        old_value: null,
+        new_value: insertedFile,
+      },
+    ]);
+
+    if (fileLogError) {
+      console.error("Log insert error:", fileLogError);
+    }
 
     const { publicUrl } = supabase.storage
       .from("user-files")
@@ -90,7 +108,13 @@ export const uploadSingleFile = async (req: Request, res: Response) => {
     return;
   } catch (error: any) {
     console.error("Upload error:", error);
-    res.status(500).json({ message: "Error uploading file", type: "Internal Server Error", error});
+    res
+      .status(500)
+      .json({
+        message: "Error uploading file",
+        type: "Internal Server Error",
+        error,
+      });
     return;
   }
 };
@@ -167,7 +191,13 @@ export const uploadMultipleFiles = async (
     });
   } catch (error: any) {
     console.error("Upload error:", error);
-    res.status(500).json({ message: "Error uploading files", type: "Internal Server Error", error});
+    res
+      .status(500)
+      .json({
+        message: "Error uploading files",
+        type: "Internal Server Error",
+        error,
+      });
   }
 };
 
