@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { UserAvatar } from "./UserAvatar";
+import { File } from "lucide-react";
 import { useState } from "react";
 
 interface Notification {
   message: string;
   type?: "success" | "error" | "warning" | "info";
-  description?: string; 
+  description?: string;
 }
 
 interface DashboardNavbarProps {
@@ -67,52 +68,103 @@ const DashboardNavBar = ({
   userNames,
 }: DashboardNavbarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const convertToLocaleString = (raw: string): string => {
+    const date = new Date(raw);
+
+    const formatted = date.toLocaleString();
+    return formatted;
+  };
+
   const FileSearch = ({ files, folders }: any) => {
     const filteredFiles = files.filter((file: any) =>
       file.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    {/*const filteredFolders = folders.filter((folder: any) =>
-      folder.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );*/}
-
     const useDecimal = decimalStorage;
 
     return (
       <div className="search-results">
-        <tbody>
-          {/*filteredFolders.map((folder: any) => (
-            <tr key={folder.id} className="search-result">
-              <td>{folderNames[folder.id]}</td>
-              <td>{folderNames[folder.parent_id] || "--"}</td>
-              <td>
-                {useDecimal
-                  ? decimalStorageConversion(Number(folder.size))
-                  : binaryStorageConversion(Number(folder.size))}
-              </td>
-              <td>{userNames[folder.user_id]}</td>
-              <td>{folder.updated_at || folder.created_at}</td>
-            </tr>
-          ))*/}
-          {filteredFiles.map((file: any) => (
-            <tr key={file.id} className="search-result">
-              <td>{file.name}</td>
-              <td>--</td>
-              <td>
-                {useDecimal
-                  ? decimalStorageConversion(Number(file.size))
-                  : binaryStorageConversion(Number(file.size))}
-              </td>
-              <td>{userNames[file.user_id]}</td>
-              <td>{file.updated_at}</td>
-            </tr>
-          ))}
-        </tbody>
+        {
+          <div className="search-results-desktop desktop-only">
+            <tbody>
+              {filteredFiles.map((file: any) => (
+                <tr key={file.id} className="search-result">
+                  <td>{file.name}</td>
+                  <td>
+                    {useDecimal
+                      ? decimalStorageConversion(Number(file.size))
+                      : binaryStorageConversion(Number(file.size))}
+                  </td>
+                  <td>{userNames[file.user_id]}</td>
+                  <td className="search-hidden">{file.updated_at}</td>
+                </tr>
+              ))}
+            </tbody>
+          </div>
+        }
+        {
+          <div className="search-results-mobile mobile-only">
+            {filteredFiles.map((file: any) => (
+              <div key={file.id} className="file-item">
+                <div className="file-details">
+                  <div className="file-name">{file.name}</div>
+                  <div className="file-owner">
+                    {userNames[file.user_id]} -{" "}
+                    {convertToLocaleString(file.updated_at)}
+                  </div>
+                </div>
+                <button className="file-menu-btn">⋮</button>
+              </div>
+            ))}
+          </div>
+        }
       </div>
     );
   };
 
-  return (
+  const mobileNavbar = () => (
+    <nav className="mobile-navbar dashboard-nav">
+      <div className="navbar-search">
+        <div className="search-header">
+          <button className="search-btn">
+            <img
+              src="/icons/search-solid.svg"
+              alt="search-icon"
+              className="navbar-icon search-icon"
+            />
+          </button>
+          <input
+            type="text"
+            placeholder="Search in Drive"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          <button className="search-btn" onClick={() => setSearchQuery("")}>
+            <img
+              src="/icons/xmark-solid.svg"
+              alt="x-icon"
+              className="navbar-icon cancel-icon"
+            />
+          </button>
+        </div>
+        <div className="search-results-container">
+          {searchQuery && <FileSearch files={files} />}
+        </div>
+      </div>
+      <UserAvatar
+        name={name}
+        email={email}
+        avatarUrl={avatarUrl}
+        usedStoragePercentage={usedStoragePercentage}
+        setNotification={setNotification}
+        decimalStorage={decimalStorage}
+        setDecimalStorage={setDecimalStorage}
+      />
+    </nav>
+  );
+
+  const desktopNavbar = () => (
     <nav className="navbar dashboard-nav">
       <Link to={"/"} className="navbar-logo">
         <img src="/icons/cloud-solid.svg" alt="cloud-icon" />
@@ -134,7 +186,7 @@ const DashboardNavBar = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
           />
-          <button className="search-btn">
+          <button className="search-btn" onClick={() => setSearchQuery("")}>
             <img
               src="/icons/xmark-solid.svg"
               alt="x-icon"
@@ -143,7 +195,7 @@ const DashboardNavBar = ({
           </button>
         </div>
         <div className="search-results-container">
-          {searchQuery && <FileSearch files={files}/>}
+          {searchQuery && <FileSearch files={files} />}
         </div>
       </div>
       <UserAvatar
@@ -156,6 +208,13 @@ const DashboardNavBar = ({
         setDecimalStorage={setDecimalStorage}
       />
     </nav>
+  );
+
+  return (
+    <div>
+      {mobileNavbar()}
+      {desktopNavbar()}
+    </div>
   );
 };
 
@@ -184,6 +243,6 @@ const AdminNavBar = ({
       />
     </nav>
   );
-}
+};
 
-export { LandingNavBar, LandingNavBarMobile, DashboardNavBar, AdminNavBar};
+export { LandingNavBar, LandingNavBarMobile, DashboardNavBar, AdminNavBar };
