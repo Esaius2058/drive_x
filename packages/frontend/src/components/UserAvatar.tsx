@@ -27,7 +27,7 @@ export function UserAvatar({
   avatarUrl,
   usedStoragePercentage,
   setNotification,
-  decimalStorage, 
+  decimalStorage,
   setDecimalStorage,
 }: UserAvatarProps) {
   const [open, setOpen] = useState(false);
@@ -174,7 +174,11 @@ export function UserAvatar({
           <img src={avatarUrl} alt="user-avatar" className="avatar-image" />
         ) : (
           <div className="avatar-placeholder">
-            <img src="/icons/user-solid.svg" alt="user" className="avatar-image" />
+            <img
+              src="/icons/user-solid.svg"
+              alt="user"
+              className="avatar-image"
+            />
           </div>
         )}
       </button>
@@ -182,6 +186,17 @@ export function UserAvatar({
       {open && (
         <div className="dropdown-menu">
           <div className="profile-info">
+            {avatarUrl !== "" ? (
+              <img src={avatarUrl} alt="user-avatar" className="avatar-image" />
+            ) : (
+              <div className="avatar-placeholder dropdown-avatar">
+                <img
+                  src="/icons/user-solid.svg"
+                  alt="user"
+                  className="avatar-image dropdown-avatar"
+                />
+              </div>
+            )}
             <span className="profile-name">{name || "John Doe"}</span>
             <span className="profile-email">
               {email || "john345@gmail.com"}
@@ -190,35 +205,23 @@ export function UserAvatar({
               Storage: {usedStoragePercentage}% used
             </p>
             <div className="storage-option">
-                <span className="settings-label">Decimal Storage</span>
-                <Switch
-                  checked={decimalStorage}
-                  onCheckedChange={setDecimalStorage}
-                />
-              </div>
+              <span className="settings-label">Decimal Storage</span>
+              <Switch
+                checked={decimalStorage}
+                onCheckedChange={setDecimalStorage}
+              />
+            </div>
           </div>
           <hr className="divider" />
           {passwordToggle == false ? (
             <div className="settings-options">
-              <button
-                className="primary-btn"
-                onClick={() => setPasswordToggle(true)}
-              >
-                Change Password
+              <button onClick={() => setPasswordToggle(true)}>
+                Update Profile
               </button>
-              <button
-                className="primary-btn"
-                type="button"
-                onClick={handleLogout}
-              >
+              <button type="button" onClick={handleLogout}>
                 Log Out
               </button>
-              <button
-                className="primary-btn"
-                onClick={handleDeleteProfile}
-              >
-                Delete Account
-              </button>
+              <button onClick={handleDeleteProfile}>Delete Account</button>
             </div>
           ) : (
             <div className="password-change">
