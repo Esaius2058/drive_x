@@ -23,7 +23,7 @@ type AdminSideBarTab =
 interface Notification {
   message: string;
   type?: "success" | "error" | "warning" | "info";
-  description?: string; 
+  description?: string;
 }
 
 type SideBarProps = {
@@ -41,7 +41,7 @@ type AdminSideBarProps = {
   activeButton: AdminSideBarTab;
   setActiveButton: React.Dispatch<React.SetStateAction<AdminSideBarTab>>;
   setNotification: React.Dispatch<React.SetStateAction<Notification | null>>;
-}
+};
 
 const SideBar = ({
   activeButton,
@@ -49,11 +49,24 @@ const SideBar = ({
   usedStorage,
   storage,
   usedStoragePercentage,
-  setNotification
+  setNotification,
 }: SideBarProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  
+
+  const sidebarTabs = [
+    { name: "recent", label: "Recent", icon: "/icons/clock-regular.svg" },
+    {
+      name: "my-files",
+      label: "My Files",
+      icon: "/icons/folder-closed-regular.svg",
+    },
+    { name: "shared", label: "Shared", icon: "/icons/users-solid.svg" },
+    { name: "storage", label: "Storage", icon: "/icons/cloud-solid.svg" },
+    { name: "starred", label: "Starred", icon: "/icons/star-regular.svg" },
+    { name: "trash", label: "Trash", icon: "/icons/trash-solid.svg" },
+  ];
+
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const buttonName = event.currentTarget.name;
     setActiveButton(buttonName as SideBarTab);
@@ -91,23 +104,24 @@ const SideBar = ({
         return;
       }
 
-      formData.append('file', fileInput.files[0]);
+      formData.append("file", fileInput.files[0]);
       console.log("File Input", fileInput);
-      
+
       const result = await uploadSingleFile(formData);
       setNotification({
         message: "File uploaded successfully",
         description: `${file?.name} has been uploaded`,
-        type: "success"
+        type: "success",
       });
       console.log("Upload successful:", result);
     } catch (error: any) {
       console.error("Upload error:", error.message, "Field error", error.field);
-        setNotification({
-          message: "Upload Failed.",
-          description: "There was an error uploading your file. Please try again.",
-          type: "error",
-        });
+      setNotification({
+        message: "Upload Failed.",
+        description:
+          "There was an error uploading your file. Please try again.",
+        type: "error",
+      });
     } finally {
       setIsUploading(false);
     }
@@ -117,96 +131,80 @@ const SideBar = ({
     };
   };
 
-  return (
-    <div className="sidebar-container">
-      <div className="sidebar-items">
-        <button
-          className={`sidebar-item ${
-            activeButton === "recent" ? "sidebar-active" : ""
-          }`}
-          name="recent"
-          onClick={handleButtonClick}
-        >
-          <img src="/icons/clock-regular.svg" alt="files" className="sidebar-icon" />
-          <span>Recent Files</span>
-        </button>
-        <button
-          className={`sidebar-item ${
-            activeButton === "my-files" ? "sidebar-active" : ""
-          }`}
-          name="my-files"
-          onClick={handleButtonClick}
-        >
-          <img
-            src="/icons/folder-closed-regular.svg"
-            alt="files"
-            className="sidebar-icon"
-          />
-          <span>My Files</span>
-        </button>
-        <button
-          className={`sidebar-item ${
-            activeButton === "shared" ? "sidebar-active" : ""
-          }`}
-          name="shared"
-          onClick={handleButtonClick}
-        >
-          <img src="/icons/users-solid.svg" alt="shared" className="sidebar-icon" />
-          <span>Shared with me</span>
-        </button>
-        <button
-          className={`sidebar-item ${
-            activeButton === "starred" ? "sidebar-active" : ""
-          }`}
-          name="starred"
-          onClick={handleButtonClick}
-        >
-          <img src="/icons/star-regular.svg" alt="starred" className="sidebar-icon" />
-          <span>Starred</span>
-        </button>
-        <button
-          className={`sidebar-item ${
-            activeButton === "trash" ? "sidebar-active" : ""
-          }`}
-          name="trash"
-          onClick={handleButtonClick}
-        >
-          <img src="/icons/trash-solid.svg" alt="trash" className="sidebar-icon" />
-          <span>Trash</span>
-        </button>
-        <button
-          className={`sidebar-item ${
-            activeButton === "storage" ? "sidebar-active" : ""
-          }`}
-          name="storage"
-          onClick={handleButtonClick}
-        >
-          <img src="/icons/cloud-solid.svg" alt="storage" className="sidebar-icon" />
-          <span>Storage</span>
-        </button>
+  const desktopSidebar = () => {
+    return (
+      <div className="sidebar-container desktop-only">
+        <div className="sidebar-items">
+          {sidebarTabs.map((tab) => (
+            <button
+              key={tab.name}
+              className={`sidebar-item ${
+                activeButton === tab.name ? "sidebar-active" : ""
+              }`}
+              name={tab.name}
+              onClick={handleButtonClick}
+            >
+              <img
+                src={tab.icon}
+                alt={tab.label.toLowerCase()}
+                className="sidebar-icon"
+              />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
         <div className="sidebar-storage">
           <Progress value={usedStoragePercentage} />
           <p>
             {usedStorage} of {storage} used
           </p>
         </div>
+        <div className="sidebar-footer">
+          <h3>Drag and Drop</h3>
+          <form onSubmit={handleUpload} ref={uploadForm}>
+            <input
+              id="file"
+              name="file"
+              type="file"
+              onChange={handleFileChange}
+              className="sidebar-upload-button"
+              required
+            />
+            <button type="submit" className="primary-btn">
+              {isUploading ? <LoadingSpinner /> : "Upload"}
+            </button>
+          </form>
+        </div>
       </div>
-      <div className="sidebar-footer">
-        <h3>Drag and Drop</h3>
-        <form onSubmit={handleUpload} ref={uploadForm}>
-          <input
-            id="file"
-            name="file"
-            type="file"
-            onChange={handleFileChange}
-            className="sidebar-upload-button"
-            required
-          />
-          <button type="submit" className="primary-btn">
-            {isUploading ? <LoadingSpinner /> : "Upload"}
-          </button>
-        </form>
+    );
+  };
+
+  const mobileSideBar = () => (
+    <div className="mobile-sidebar mobile-only">
+      <div className="sidebar-items">
+        {sidebarTabs
+          .filter((tab) => tab.name !== "recent" && tab.name !== "storage")
+          .map((tab) => (
+            <button
+              key={tab.name}
+              className={`sidebar-item ${
+                activeButton === tab.name ? "sidebar-active" : ""
+              }`}
+              name={tab.name}
+              onClick={handleButtonClick}
+            >
+              <img src={tab.icon} alt={tab.label} className="sidebar-icon" />
+              <span>{tab.label}</span>
+            </button>
+          ))}
       </div>
+    </div>
+  );
+
+  return (
+    <div className="sidebar-container">
+      {mobileSideBar()}
+      {desktopSidebar()}
     </div>
   );
 };
@@ -214,7 +212,7 @@ const SideBar = ({
 const AdminSideBar = ({
   activeButton,
   setActiveButton,
-  setNotification
+  setNotification,
 }: AdminSideBarProps) => {
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const buttonName = event.currentTarget.name;
@@ -243,9 +241,9 @@ const AdminSideBar = ({
         return;
       }
 
-      formData.append('file', fileInput.files[0]);
+      formData.append("file", fileInput.files[0]);
       console.log("File Input", fileInput);
-      
+
       const result = await uploadSingleFile(formData);
       console.log("Upload successful:", result);
     } catch (error: any) {
@@ -257,7 +255,12 @@ const AdminSideBar = ({
           type: "error",
         });
       } else {
-        console.error("Upload error:", error.message, "Field error", error.field);
+        console.error(
+          "Upload error:",
+          error.message,
+          "Field error",
+          error.field
+        );
         setNotification({
           message: "Failed to upload file. Try again.",
           type: "error",
@@ -280,7 +283,11 @@ const AdminSideBar = ({
           name="overview"
           onClick={handleButtonClick}
         >
-          <img src="/icons/clock-regular.svg" alt="files" className="sidebar-icon" />
+          <img
+            src="/icons/clock-regular.svg"
+            alt="files"
+            className="sidebar-icon"
+          />
           <span>Overview</span>
         </button>
         <button
@@ -304,7 +311,11 @@ const AdminSideBar = ({
           name="files"
           onClick={handleButtonClick}
         >
-          <img src="/icons/users-solid.svg" alt="shared" className="sidebar-icon" />
+          <img
+            src="/icons/users-solid.svg"
+            alt="shared"
+            className="sidebar-icon"
+          />
           <span>File</span>
         </button>
         <button
@@ -314,7 +325,11 @@ const AdminSideBar = ({
           name="settings"
           onClick={handleButtonClick}
         >
-          <img src="/icons/star-regular.svg" alt="starred" className="sidebar-icon" />
+          <img
+            src="/icons/star-regular.svg"
+            alt="starred"
+            className="sidebar-icon"
+          />
           <span>Settings</span>
         </button>
         <button
@@ -324,7 +339,11 @@ const AdminSideBar = ({
           name="logs"
           onClick={handleButtonClick}
         >
-          <img src="/icons/trash-solid.svg" alt="trash" className="sidebar-icon" />
+          <img
+            src="/icons/trash-solid.svg"
+            alt="trash"
+            className="sidebar-icon"
+          />
           <span>Logs</span>
         </button>
         <button
@@ -334,7 +353,11 @@ const AdminSideBar = ({
           name="feedback"
           onClick={handleButtonClick}
         >
-          <img src="/icons/cloud-solid.svg" alt="storage" className="sidebar-icon" />
+          <img
+            src="/icons/cloud-solid.svg"
+            alt="storage"
+            className="sidebar-icon"
+          />
           <span>Feedback</span>
         </button>
       </div>
@@ -356,4 +379,4 @@ const AdminSideBar = ({
   );
 };
 
-export {SideBar, AdminSideBar};
+export { SideBar, AdminSideBar };
