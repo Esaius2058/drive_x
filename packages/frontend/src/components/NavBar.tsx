@@ -135,7 +135,7 @@ const DashboardNavBar = ({
             <tbody>
               {filteredFiles.map((file: any) => (
                 <tr key={file.id} className="search-result">
-                  <td>{file.name}</td>
+                  <td className="filename-cell">{file.name}</td>
                   <td>
                     {useDecimal
                       ? decimalStorageConversion(Number(file.size))

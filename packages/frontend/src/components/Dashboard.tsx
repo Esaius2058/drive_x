@@ -157,9 +157,23 @@ const Dashboard = () => {
   const renderList = () => {
     switch (activeButton) {
       case "recent":
-        return files.length === 0 ? <NoFiles /> : <>{renderDesktopTable()}{renderMobileTable()}</>;
+        return files.length === 0 ? (
+          <NoFiles />
+        ) : (
+          <>
+            {renderDesktopTable()}
+            {renderMobileTable()}
+          </>
+        );
       case "my-files":
-        return files.length === 0 ? <NoFiles /> : <>{renderDesktopTable()}{renderMobileTable()}</>;
+        return files.length === 0 ? (
+          <NoFiles />
+        ) : (
+          <>
+            {renderDesktopTable()}
+            {renderMobileTable()}
+          </>
+        );
       case "shared":
         return <NoShared />;
       case "trash":

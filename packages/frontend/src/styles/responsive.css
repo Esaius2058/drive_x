@@ -1,4 +1,8 @@
 @media only screen and (max-width: 478px) {
+  .dashboard-body {
+    flex-direction: column;
+    overflow-y: hidden;
+  }
   .search-results-mobile {
     width: 100%;
   }
@@ -85,10 +89,10 @@
   .footer-top h3 {
     font-size: 1rem;
   }
-  .footer-top{
+  .footer-top {
     font-size: 0.85rem;
   }
-  .hero-tagline h2{
+  .hero-tagline h2 {
     font-weight: 500;
     font-size: 1.3rem;
     text-align: center;
@@ -96,6 +100,9 @@
 }
 
 @media only screen and (min-width: 479px) {
+  .dashboard-body {
+    flex-direction: column;
+  }
   .mobile-only {
     display: flex;
   }
@@ -139,9 +146,42 @@
   .feature {
     flex-direction: column;
   }
+  .feature-description {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+  .feature-description h1 {
+    font-size: 2rem;
+  }
+  .social-media {
+    gap: 20px;
+  }
+  .social-media img {
+    width: 30px;
+    height: 30px;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    padding: 10px;
+  }
+  .footer-top h3 {
+    font-size: 1rem;
+  }
+  .footer-top {
+    font-size: 0.85rem;
+  }
+  .hero-tagline h2 {
+    font-weight: 500;
+    font-size: 1.3rem;
+    text-align: center;
+  }
 }
 
 @media only screen and (min-width: 646px) {
+  .dashboard-body {
+    flex-direction: row;
+  }
   .desktop-only,
   .navbar {
     display: flex;
@@ -149,6 +189,9 @@
   .mobile-only,
   .mobile-navbar {
     display: none;
+  }
+  .navbar-search {
+    min-width: 440px;
   }
   .sidebar-container {
     flex-direction: column;
@@ -200,10 +243,18 @@
     left: 50%;
     transform: translateX(-50%);
   }
+  .sidebar-container {
+    justify-content: flex-start;
+    gap: 50px;
+  }
 }
 
 @media only screen and (min-width: 998px) {
   .search-hidden {
     display: block;
+  }
+  .sidebar-container {
+    justify-content: center;
+    gap: 50px;
   }
 }
