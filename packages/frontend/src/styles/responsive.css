@@ -247,6 +247,13 @@
     justify-content: flex-start;
     gap: 50px;
   }
+  .footer-top h3 {
+    font-size: 2rem;
+  }
+  .footer-top {
+    font-size: 1rem;
+    font-weight: 500;
+  }
 }
 
 @media only screen and (min-width: 998px) {
