@@ -5,6 +5,11 @@ import MainRoutes from "./routes";
 import { AuthProvider } from "./components/AuthProvider";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./index.css";
+import './styles/base.css';
+import './styles/layout.css';
+import './styles/components.css';
+import './styles/animations.css'; 
+import './styles/responsive.css'; 
 
 const router = createBrowserRouter(MainRoutes());
 const rootElement = document.getElementById("root") as HTMLElement;
