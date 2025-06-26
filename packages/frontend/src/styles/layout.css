@@ -1,0 +1,222 @@
+/*Landing Page*/
+.landing-page {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/*hero-section*/
+.landing-hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 1060px;
+  height: 620px;
+  max-width: 100%;
+}
+.hero-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  flex: 1;
+  width: 50%;
+  height: 100%;
+}
+.hero-tagline {
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 20px;
+  width: 400px;
+  height: 230px;
+}
+.hero-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.hero-logo img {
+  width: 50px;
+  height: 50px;
+}
+
+/*features section*/
+.landing-features {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.feature {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 40px;
+  width: 100%;
+  padding: 40px;
+}
+.feature-description {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 20px;
+  width: 599px;
+  height: 240px;
+}
+.feature img {
+  width: 320px;
+  height: 240px;
+  border-radius: 20px;
+  object-fit: cover;
+}
+
+/*pivot section*/
+.landing-pivot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 300px;
+  padding: 40px;
+  background-color: var(--light-gray);
+}
+.pivot-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  gap: 50px;
+  width: 100%;
+}
+
+/*DASHBOARD PAGE*/
+.dashboard-page,
+.error-page {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+}
+.dashboard-body {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  flex-direction: row;
+  width: 100%;
+  height: calc(100vh - 65px);
+  padding: 5px;
+}
+.sidebar-container,
+.skeleton-sidebar {
+  display: flex;
+  justify-content: space-around;
+  align-items: start;
+  padding: 0px 5px;
+}
+.sidebar-items {
+  display: flex;
+  justify-content: start;
+  align-items: start;
+  flex-direction: column;
+  gap: 10px;
+}
+.sidebar-items button {
+  background-color: transparent;
+  color: inherit;
+  border-radius: 20px;
+  width: 200px;
+}
+.sidebar-item.sidebar-active {
+  background-color: var(--light-gray);
+  color: var(--navy);
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-icon {
+  width: 25px;
+  height: 25px;
+}
+.dashboard-content {
+  display: flex;
+  justify-content: start;
+  align-items: start;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  gap: 10px;
+  border-radius: 20px;
+  background-color: var(--pearl);
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray) var(--pearl);
+}
+.dashboard-content::-webkit-scrollbar {
+  width: 8px; /* vertical */
+  height: 8px; /* horizontal */
+}
+.dashboard-content::-webkit-scrollbar-thumb {
+  background-color: var(--gray);
+  border-radius: 4px;
+}
+.dashboard-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dark-gray);
+}
+.dashboard-content::-webkit-scrollbar-track {
+  background: var(--pearl);
+}
+.dashboard-content h2 {
+  font-size: 25px;
+  padding-left: 15px;
+}
+
+.sidebar-footer input {
+  width: 100%;
+  height: 120px;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.sidebar-footer input::file-selector-button {
+  background-color: var(--navy);
+  color: var(--white);
+  border-radius: 10px;
+  padding: 10px;
+  border: none;
+  font-size: 15px;
+}
+.sidebar-storage {
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  text-align: center;
+  padding-left: 20px;
+  gap: 10px;
+}
+.dashboard-section {
+  display: flex;
+  justify-content: start;
+  flex-direction: column;
+  gap: 15px;
+}
+.dashboard-section h2 {
+  padding-left: 0px;
+}
+.subsection-options {
+  display: flex;
+  justify-content: space-between;
+}
