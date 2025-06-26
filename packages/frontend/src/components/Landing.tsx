@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { LandingNavBar } from "./NavBar";
+import { LandingNavBar, LandingNavBarMobile } from "./NavBar";
 import Footer from "./Footer";
 
 const Landing = () => {
   return (
     <div className="landing-page">
       <LandingNavBar />
+      <LandingNavBarMobile />
       <section className="landing-hero" id="landing-hero">
         <div className="hero-content">
           <div className="hero-tagline">
