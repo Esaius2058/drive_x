@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { UserAvatar } from "./UserAvatar";
-import { File } from "lucide-react";
+import { AlignJustify, X } from "lucide-react";
 import { useState } from "react";
 
 interface Notification {
@@ -41,7 +41,6 @@ const LandingNavBar = () => {
         <img src="/icons/cloud-white.svg" alt="cloud-icon" />
         <h1 className="navbar-logo-header-1">drive X</h1>
       </Link>
-      <div className="navbar-filler"></div>
       <div className="navbar-links">
         <Link to="/#landing-features">Features</Link>
         <Link to="/about">Docs</Link>
@@ -51,7 +50,54 @@ const LandingNavBar = () => {
   );
 };
 
-const LandingNavBarMobile = () => {};
+const LandingNavBarMobile = () => {
+  const [openMenu, setOpenMenu] = useState(false);
+
+  const toggleMenu = () => {
+    setOpenMenu(!openMenu);
+  };
+
+  return (
+    <>
+      <nav className="mobile-navbar welcome-nav">
+        <Link to={"/"} className="navbar-logo">
+          <img src="/icons/cloud-white.svg" alt="cloud-icon" />
+          <h1 className="navbar-logo-header-1">drive X</h1>
+        </Link>
+        <button onClick={toggleMenu} aria-label="Toggle menu">
+          {openMenu ? <X color="white" /> : <AlignJustify color="white" />}
+        </button>
+      </nav>
+
+      {/* Mobile menu that appears when openMenu is true */}
+      {openMenu && (
+        <div className="mobile-menu-overlay">
+          <div className="mobile-menu-content">
+            <Link to="/features" onClick={() => setOpenMenu(false)}>
+              Features
+            </Link>
+            <Link to="/pricing" onClick={() => setOpenMenu(false)}>
+              Pricing
+            </Link>
+            <Link to="/about" onClick={() => setOpenMenu(false)}>
+              About Us
+            </Link>
+            <Link to="/auth/login" onClick={() => setOpenMenu(false)}>
+              Login
+            </Link>
+            <Link 
+              to="/auth/signup" 
+              className="signup-button"
+              onClick={() => setOpenMenu(false)}
+            >
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
 const DashboardNavBar = ({
   name,
