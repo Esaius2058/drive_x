@@ -253,8 +253,4 @@
   .search-hidden {
     display: block;
   }
-  .sidebar-container {
-    justify-content: center;
-    gap: 50px;
-  }
 }

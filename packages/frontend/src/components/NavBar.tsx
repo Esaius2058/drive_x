@@ -216,6 +216,7 @@ const DashboardNavBar = ({
         <img src="/icons/cloud-solid.svg" alt="cloud-icon" />
         <h1 className="navbar-logo-header-2">drive X</h1>
       </Link>
+      <div className="navbar-filler"></div>
       <div className="navbar-search">
         <div className="search-header">
           <button className="search-btn">
