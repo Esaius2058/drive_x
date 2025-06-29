@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { act, useEffect, useState } from "react";
+import { act, useEffect, useState, useRef } from "react";
 import { DashboardNavBar } from "./NavBar";
 import { SideBar } from "./SideBar";
 import { Progress } from "./Progress";
@@ -7,7 +6,7 @@ import { NoFiles, EmptyTrash, NoShared, NoStarred } from "./404";
 import { useLocation } from "react-router-dom";
 import { LoadingDashboard } from "./LoadingScreen";
 import { useAuth } from "./AuthContext";
-import { File } from "lucide-react";
+import { File, EllipsisVertical } from "lucide-react";
 
 const binaryStorageConversion = (bytes: number) => {
   const kb = bytes / 1024;
@@ -72,6 +71,8 @@ const Dashboard = () => {
   const [usedStoragePercentage, setUsedStoragePercentage] = useState<number>(0);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [decimalStorage, setDecimalStorage] = useState<boolean>(true);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (totalStorageUsed == null) return;
@@ -106,6 +107,14 @@ const Dashboard = () => {
     return formatted;
   };
 
+  const handleClickMenu = (fileId: string) => {
+    setMenuOpen(menuOpen == fileId ? null : fileId);
+  };
+
+  const handleMenuAction = (action: string, fileId: string) => {
+    setMenuOpen(null);
+  };
+
   const renderDesktopTable = () => (
     <div className="file-table desktop-only">
       <table>
@@ -121,13 +130,40 @@ const Dashboard = () => {
           {files.map((file: any) => (
             <tr key={file.id}>
               <td className="filename-cell">{file.name}</td>
-              <td>{userNames[file.user_id]}</td>
+              <td className="filename-cell">{userNames[file.user_id]}</td>
               <td>
                 {decimalStorage
                   ? decimalStorageConversion(Number(file.size))
                   : binaryStorageConversion(Number(file.size))}
               </td>
-              <td>{convertToLocaleString(file.updated_at)}</td>
+              <td className="filename-cell">
+                {convertToLocaleString(file.updated_at)}
+              </td>
+              <td>
+                <button
+                  className="file-menu-btn"
+                  onClick={() => handleClickMenu(file.id)}
+                  aria-label={`Menu for ${file.name}`}
+                >
+                  <EllipsisVertical size={15} />
+                </button>
+                {menuOpen == file.id && (
+                  <div className="dropdown-menu-file" ref={menuRef}>
+                    <button onClick={() => handleMenuAction("open", file.id)}>
+                      Open
+                    </button>
+                    <button onClick={() => handleMenuAction("rename", file.id)}>
+                      Rename
+                    </button>
+                    <button onClick={() => handleMenuAction("share", file.id)}>
+                      Share
+                    </button>
+                    <button onClick={() => handleMenuAction("delete", file.id)}>
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -148,7 +184,25 @@ const Dashboard = () => {
               {convertToLocaleString(file.updated_at)}
             </div>
           </div>
-          <button className="file-menu-btn">⋮</button>
+          <button className="file-menu-btn" onClick={() => handleClickMenu(file.id)}>
+            <EllipsisVertical size={15} />
+          </button>
+          {menuOpen == file.id && (
+            <div className="dropdown-menu-file">
+              <button onClick={() => handleMenuAction("open", file.id)}>
+                Open
+              </button>
+              <button onClick={() => handleMenuAction("rename", file.id)}>
+                Rename
+              </button>
+              <button onClick={() => handleMenuAction("share", file.id)}>
+                Share
+              </button>
+              <button onClick={() => handleMenuAction("delete", file.id)}>
+                Delete
+              </button>
+            </div>
+          )}
         </div>
       ))}
     </div>
