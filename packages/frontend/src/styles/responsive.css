@@ -97,6 +97,9 @@
     font-size: 1.3rem;
     text-align: center;
   }
+  .auth-form {
+    width: 335px;
+  }
 }
 
 @media only screen and (min-width: 479px) {
