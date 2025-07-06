@@ -42,7 +42,7 @@ const LandingNavBar = () => {
         <h1 className="navbar-logo-header-1">drive X</h1>
       </Link>
       <div className="navbar-links">
-        <Link to="/#landing-features">Features</Link>
+        <a href="#landing-features">Features</a>
         <Link to="/about">Docs</Link>
         <Link to="/auth/signup">Sign Up</Link>
       </div>
