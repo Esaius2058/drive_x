@@ -33,6 +33,7 @@ import {
   updateFile,
   getFile,
   deleteFile,
+  trashFile,
 } from "../controllers/fileControllers";
 
 const router = Router();
@@ -108,8 +109,9 @@ router.post("/folders/new-folder", createFolder);
 
 //File Routes
 router.get("/file/:id", getFile);
-router.post("/file/update:id", updateFile);
-router.post("/files/delete/:id", deleteFile);
+router.post("/file/update/:id", updateFile);
+router.post("/file/delete/:id", trashFile);
+router.delete("/file/:id", deleteFile);
 router.post("/file/upload", upload.single("file"), uploadSingleFile);
 router.post("/files/upload", upload.array("files", 5), uploadMultipleFiles);
 
