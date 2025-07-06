@@ -10,7 +10,10 @@ const Landing = () => {
       <section className="landing-hero" id="landing-hero">
         <div className="hero-content">
           <div className="hero-tagline">
-            <h1>Drive X</h1>
+            <div className="hero-logo">
+              <img src="/icons/cloud-solid.svg" alt="cloud-icon" />
+              <h1 className="navbar-logo-header-2">drive X</h1>
+            </div>
             <h2>Securely upload and access your files from anywhere.</h2>
             <div className="button-div">
               <Link to="/auth/signup">
@@ -50,9 +53,7 @@ const Landing = () => {
           <h1>Sign Up Today</h1>
           <div className="button-div">
             <Link to={"/about"}>
-            <button className="secondary-btn">
-              Learn More
-            </button>
+              <button className="secondary-btn">Learn More</button>
             </Link>
             <Link to={"/auth/signup"}>
               <button className="primary-btn">Get Started</button>
