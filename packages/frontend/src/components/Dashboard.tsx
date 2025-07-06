@@ -4,6 +4,7 @@ import { SideBar } from "./SideBar";
 import { Progress } from "./Progress";
 import { NoFiles, EmptyTrash, NoShared, NoStarred } from "./404";
 import { useLocation } from "react-router-dom";
+import { getFile, moveToTrash, updateFile } from "../services/file";
 import { LoadingDashboard } from "./LoadingScreen";
 import { useAuth } from "./AuthContext";
 import { File, EllipsisVertical } from "lucide-react";
@@ -72,7 +73,11 @@ const Dashboard = () => {
   const [notification, setNotification] = useState<Notification | null>(null);
   const [decimalStorage, setDecimalStorage] = useState<boolean>(true);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [renameOpen, setRenameOpen] = useState<boolean>(false);
+  const [currentFileId, setCurrentFileId] = useState<string>("");
+  const [currentFileName, setCurrentFileName] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
+  const renameForm = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (totalStorageUsed == null) return;
@@ -111,8 +116,82 @@ const Dashboard = () => {
     setMenuOpen(menuOpen == fileId ? null : fileId);
   };
 
-  const handleMenuAction = (action: string, fileId: string) => {
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
+  const handleMoveToTrash = async (fileId: string) => {
+    try {
+      const message = await moveToTrash(fileId);
+      setNotification({
+        message,
+        type: "success",
+      });
+    } catch (error: any) {
+      setNotification({
+        message: "Error moving file to trash",
+        type: "error",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleMenuAction = async (
+    action: string,
+    fileId: string,
+    fileName: string
+  ) => {
+    setCurrentFileId(fileId);
+    switch (action) {
+      case "open":
+        const url = await getFile(fileId);
+        window.open(url, "_blank");
+        break;
+
+      case "rename":
+        setCurrentFileName(fileName);
+        setRenameOpen(true);
+        break;
+
+      case "delete":
+        await handleMoveToTrash(fileId);
+        break;
+
+      case "share":
+        break;
+    }
     setMenuOpen(null);
+  };
+
+  const handleRename = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const form = renameForm.current;
+    if (!form) {
+      setNotification({ message: "Form is not available." });
+      return;
+    }
+
+    try {
+      const formData = new FormData(form);
+
+      const newName = formData.get("newname") as string;
+
+      const message = await updateFile(currentFileId, newName);
+      setNotification({
+        message,
+        type: "success",
+      });
+    } catch (error: any) {
+      console.error("Rename failed:", error);
+      setNotification({
+        message: "Error renaming file",
+        type: "error",
+        description: error,
+      });
+    } finally {
+      setRenameOpen(false);
+    }
   };
 
   const renderDesktopTable = () => (
@@ -127,45 +206,63 @@ const Dashboard = () => {
           </tr>
         </thead>
         <tbody>
-          {files.map((file: any) => (
-            <tr key={file.id}>
-              <td className="filename-cell">{file.name}</td>
-              <td className="filename-cell">{userNames[file.user_id]}</td>
-              <td>
-                {decimalStorage
-                  ? decimalStorageConversion(Number(file.size))
-                  : binaryStorageConversion(Number(file.size))}
-              </td>
-              <td className="filename-cell">
-                {convertToLocaleString(file.updated_at)}
-              </td>
-              <td>
-                <button
-                  className="file-menu-btn"
-                  onClick={() => handleClickMenu(file.id)}
-                  aria-label={`Menu for ${file.name}`}
-                >
-                  <EllipsisVertical size={15} />
-                </button>
-                {menuOpen == file.id && (
-                  <div className="dropdown-menu-file" ref={menuRef}>
-                    <button onClick={() => handleMenuAction("open", file.id)}>
-                      Open
-                    </button>
-                    <button onClick={() => handleMenuAction("rename", file.id)}>
-                      Rename
-                    </button>
-                    <button onClick={() => handleMenuAction("share", file.id)}>
-                      Share
-                    </button>
-                    <button onClick={() => handleMenuAction("delete", file.id)}>
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </td>
-            </tr>
-          ))}
+          {files
+            .filter((file: any) => !file.is_deleted)
+            .map((file: any) => (
+              <tr key={file.id}>
+                <td className="filename-cell">{file.name}</td>
+                <td className="filename-cell">{userNames[file.user_id]}</td>
+                <td>
+                  {decimalStorage
+                    ? decimalStorageConversion(Number(file.size))
+                    : binaryStorageConversion(Number(file.size))}
+                </td>
+                <td className="filename-cell">
+                  {convertToLocaleString(file.updated_at)}
+                </td>
+                <td>
+                  <button
+                    className="file-menu-btn"
+                    onClick={() => handleClickMenu(file.id)}
+                    aria-label={`Menu for ${file.name}`}
+                  >
+                    <EllipsisVertical size={15} />
+                  </button>
+                  {menuOpen === file.id && (
+                    <div className="dropdown-menu-file" ref={menuRef}>
+                      <button
+                        onClick={() =>
+                          handleMenuAction("open", file.id, file.name)
+                        }
+                      >
+                        Open
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleMenuAction("rename", file.id, file.name)
+                        }
+                      >
+                        Rename
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleMenuAction("share", file.id, file.name)
+                        }
+                      >
+                        Share
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleMenuAction("delete", file.id, file.name)
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>
@@ -174,7 +271,57 @@ const Dashboard = () => {
   //file table for mobile
   const renderMobileTable = () => (
     <div className="file-table mobile-only">
-      {files.map((file: any) => (
+      {files
+        .filter((file: any) => !file.is_deleted)
+        .map((file: any) => (
+          <div key={file.id} className="file-item">
+            <File size={50} />
+            <div className="file-details">
+              <div className="file-name">{file.name}</div>
+              <div className="file-owner">
+                {userNames[file.user_id]} -{" "}
+                {convertToLocaleString(file.updated_at)}
+              </div>
+            </div>
+            <button
+              className="file-menu-btn"
+              onClick={() => handleClickMenu(file.id)}
+            >
+              <EllipsisVertical size={15} />
+            </button>
+            {menuOpen == file.id && (
+              <div className="dropdown-menu-file">
+                <button
+                  onClick={() => handleMenuAction("open", file.id, file.name)}
+                >
+                  Open
+                </button>
+                <button
+                  onClick={() => handleMenuAction("rename", file.id, file.name)}
+                >
+                  Rename
+                </button>
+                <button
+                  onClick={() => handleMenuAction("share", file.id, file.name)}
+                >
+                  Share
+                </button>
+                <button
+                  onClick={() => handleMenuAction("delete", file.id, file.name)}
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+    </div>
+  );
+
+  const renderTrashList = () => {
+    return files
+      .filter((file: any) => file.is_deleted)
+      .map((file: any) => (
         <div key={file.id} className="file-item">
           <File size={50} />
           <div className="file-details">
@@ -184,29 +331,39 @@ const Dashboard = () => {
               {convertToLocaleString(file.updated_at)}
             </div>
           </div>
-          <button className="file-menu-btn" onClick={() => handleClickMenu(file.id)}>
+          <button
+            className="file-menu-btn"
+            onClick={() => handleClickMenu(file.id)}
+          >
             <EllipsisVertical size={15} />
           </button>
-          {menuOpen == file.id && (
+          {menuOpen === file.id && (
             <div className="dropdown-menu-file">
-              <button onClick={() => handleMenuAction("open", file.id)}>
+              <button
+                onClick={() => handleMenuAction("open", file.id, file.name)}
+              >
                 Open
               </button>
-              <button onClick={() => handleMenuAction("rename", file.id)}>
+              <button
+                onClick={() => handleMenuAction("rename", file.id, file.name)}
+              >
                 Rename
               </button>
-              <button onClick={() => handleMenuAction("share", file.id)}>
+              <button
+                onClick={() => handleMenuAction("share", file.id, file.name)}
+              >
                 Share
               </button>
-              <button onClick={() => handleMenuAction("delete", file.id)}>
+              <button
+                onClick={() => handleMenuAction("delete", file.id, file.name)}
+              >
                 Delete
               </button>
             </div>
           )}
         </div>
-      ))}
-    </div>
-  );
+      ));
+  };
 
   const renderList = () => {
     switch (activeButton) {
@@ -231,7 +388,10 @@ const Dashboard = () => {
       case "shared":
         return <NoShared />;
       case "trash":
-        return <EmptyTrash />;
+        const trashedFiles = files.filter(
+          (file: any) => file.is_deleted === true
+        );
+        return trashedFiles.length === 0 ? <EmptyTrash /> : renderTrashList();
       case "starred":
         return <NoStarred />;
       case "storage":
@@ -268,6 +428,32 @@ const Dashboard = () => {
             <p>{notification.description}</p>
           </div>
         )}
+        {renameOpen && (
+          <form
+            ref={renameForm}
+            onSubmit={handleRename}
+            className="rename-form"
+          >
+            <h2>Rename</h2>
+            <input
+              type="text"
+              name="newname"
+              value={currentFileName}
+              onChange={(e) => setCurrentFileName(e.target.value)}
+            />
+            <div className="button-div">
+              <button type="submit" className="primary-btn">
+                Rename
+              </button>
+              <button
+                className="secondary-btn"
+                onClick={() => setRenameOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     );
   };
@@ -291,6 +477,32 @@ const Dashboard = () => {
             <p className="toast-title">{notification.message}</p>
             <p>{notification.description}</p>
           </div>
+        )}
+        {renameOpen && (
+          <form
+            ref={renameForm}
+            onSubmit={handleRename}
+            className="rename-form"
+          >
+            <h2>Rename</h2>
+            <input
+              type="text"
+              name="newname"
+              value={currentFileName}
+              onChange={(e) => setCurrentFileName(e.target.value)}
+            />
+            <div className="button-div">
+              <button type="submit" className="primary-btn">
+                Rename
+              </button>
+              <button
+                className="secondary-btn"
+                onClick={() => setRenameOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         )}
       </div>
     );
