@@ -3,6 +3,7 @@ import { Progress } from "./Progress";
 import { useRef, useState } from "react";
 import { uploadSingleFile } from "../services/upload";
 import { LoadingSpinner } from "./LoadingScreen";
+import { File, FilePlus2, X } from "lucide-react";
 
 type SideBarTab =
   | "recent"
@@ -51,8 +52,10 @@ const SideBar = ({
   usedStoragePercentage,
   setNotification,
 }: SideBarProps) => {
-  const [file, setFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentFileName, setCurrentFileName] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sidebarTabs = [
     { name: "recent", label: "Recent", icon: "/icons/clock-regular.svg" },
@@ -75,9 +78,10 @@ const SideBar = ({
   const uploadForm = useRef<HTMLFormElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+    const currentFile = event.target.files?.[0];
+    if (currentFile) {
+      setSelectedFile(currentFile);
+      setCurrentFileName(currentFile.name);
     }
   };
 
@@ -110,7 +114,7 @@ const SideBar = ({
       const result = await uploadSingleFile(formData);
       setNotification({
         message: "File uploaded successfully",
-        description: `${file?.name} has been uploaded`,
+        description: `${currentFileName} has been uploaded`,
         type: "success",
       });
       console.log("Upload successful:", result);
@@ -124,11 +128,20 @@ const SideBar = ({
       });
     } finally {
       setIsUploading(false);
+      setSelectedFile(null);
+      setCurrentFileName("");
     }
+  };
 
-    const handleUploadFolder = async (e: React.FormEvent) => {
-      e.preventDefault();
-    };
+  const handleUploadFolder = async (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
+  const handleBrowserClick = () => {
+    fileInputRef.current?.click();
+    let fileName = currentFileName ? selectedFile?.name : currentFileName;
+    if (!fileName) fileName = "";
+    setCurrentFileName(fileName);
   };
 
   const desktopSidebar = () => {
@@ -166,6 +179,7 @@ const SideBar = ({
               id="file"
               name="file"
               type="file"
+              ref={fileInputRef}
               onChange={handleFileChange}
               className="sidebar-upload-button"
               required
@@ -198,6 +212,39 @@ const SideBar = ({
             </button>
           ))}
       </div>
+      <button className="upload-btn-mobile" onClick={handleBrowserClick}>
+        <FilePlus2 size={40} />
+      </button>
+      {selectedFile && (
+        <div className="mobile-menu-overlay">
+          <button className="x-icon" onClick={() => setSelectedFile(null)}>
+            <X size={40} color="white" />
+          </button>
+          <div className="file-thumbnail">
+            <File size={80} color="white" />
+          </div>
+          <div className="upload-options">
+            <div>
+              <legend>File Name</legend>
+              <input
+                type="text"
+                name="file-name"
+                id="file-name"
+                value={currentFileName}
+                onChange={(e) => setCurrentFileName(e.target.value)}
+              />
+            </div>
+            <div className="button-div">
+              <button onClick={() => fileInputRef.current?.click()}>
+                Change File
+              </button>
+              <button onClick={handleUpload}>
+                {isUploading ? <LoadingSpinner /> : "Upload"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -214,6 +261,8 @@ const AdminSideBar = ({
   setActiveButton,
   setNotification,
 }: AdminSideBarProps) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const buttonName = event.currentTarget.name;
     setActiveButton(buttonName as AdminSideBarTab);
@@ -369,6 +418,12 @@ const AdminSideBar = ({
             className="sidebar-upload-button"
             id="file"
             name="file"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setSelectedFile(file);
+              }
+            }}
           />
           <button type="submit" className="primary-btn">
             Upload
