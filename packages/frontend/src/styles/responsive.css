@@ -223,6 +223,9 @@
   .hero-tagline h1 {
     font-size: 50px;
   }
+  .hero-tagline h2{
+    text-align: start;
+  }
   .feature {
     flex-direction: row;
   }
