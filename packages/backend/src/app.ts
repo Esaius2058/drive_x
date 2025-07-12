@@ -18,8 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? ["https://file-uploader-nu.vercel.app"]
-    : ["http://localhost:5173", "https://file-uploader-nu.vercel.app"];
+    ? ["https://drive-x-jiuy.onrender.com"]
+    : ["http://localhost:5173", "https://drive-x-jiuy.onrender.com"];
 
 app.use(
   cors({
