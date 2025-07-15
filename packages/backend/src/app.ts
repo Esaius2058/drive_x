@@ -27,6 +27,7 @@ app.use(
     credentials: true,
   })
 );
+console.log("Allowed origins: ", allowedOrigins);
 //Initialize the router directory
 app.use("/api", router);
 // Directory for static files
