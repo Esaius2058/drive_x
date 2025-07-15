@@ -12,36 +12,36 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "@quixo3/prisma-session-store": "^3.1.13",
+    "@supabase/supabase-js": "^2.49.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/express-session": "^1.18.1",
     "@types/jsonwebtoken": "^9.0.9",
-    "@types/multer": "^1.4.12",
+    "@types/multer": "^1.4.13",
     "@types/node": "^22.14.0",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
-    "ejs": "^3.1.10",
-    "multer": "^1.4.5-lts.1",
-    "passport": "^0.7.0",
-    "prisma": "^6.5.0",
-    "ts-node-dev": "^2.0.0"
-  },
-  "dependencies": {
-    "@prisma/client": "^6.5.0",
-    "@quixo3/prisma-session-store": "^3.1.13",
-    "@supabase/supabase-js": "^2.49.1",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "passport": "^0.7.0",
     "prismajs": "^1.0.2",
     "punycode": "^2.3.1",
     "sanitize-filename": "^1.6.3"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "prisma": "^6.5.0"
   }
 }
