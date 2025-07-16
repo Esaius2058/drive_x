@@ -10,12 +10,6 @@ const app: Application = express();
 app.set("view engine", "ejs");
 app.set("views", path.resolve(__dirname, "../src", "views"));
 
-// Middleware to parse incoming JSON requests into JavaScript objects
-app.use(express.json());
-// Middleware to parse URL-encoded data (like form submissions)
-app.use(express.urlencoded({ extended: true }));
-// Middleware to enable CORS (Cross-Origin Resource Sharing)
-
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? ["https://drive-x-jiuy.onrender.com"]
@@ -27,7 +21,18 @@ app.use(
     credentials: true,
   })
 );
-console.log("Allowed origins: ", allowedOrigins);
+
+app.options("*", cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
+// Middleware to parse incoming JSON requests into JavaScript objects
+app.use(express.json());
+// Middleware to parse URL-encoded data (like form submissions)
+app.use(express.urlencoded({ extended: true }));
+// Middleware to enable CORS (Cross-Origin Resource Sharing)
+
 //Initialize the router directory
 app.use("/api", router);
 // Directory for static files
