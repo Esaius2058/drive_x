@@ -22,11 +22,6 @@ app.use(
   })
 );
 
-app.options("*", cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
-
 // Middleware to parse incoming JSON requests into JavaScript objects
 app.use(express.json());
 // Middleware to parse URL-encoded data (like form submissions)
