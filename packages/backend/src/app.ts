@@ -12,7 +12,7 @@ app.set("views", path.resolve(__dirname, "../src", "views"));
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? ["https://drive-x-jiuy.onrender.com"]
+    ? ["https://drive-x-jiuy.onrender.com", "https://file-uploader-nu.vercel.app"]
     : ["http://localhost:5173", "https://drive-x-jiuy.onrender.com"];
 
 app.use(
