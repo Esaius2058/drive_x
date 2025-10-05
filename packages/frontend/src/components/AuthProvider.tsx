@@ -8,6 +8,7 @@ import {
 import { AuthContext } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { supabase } from "../utils/supabaseClient";
 
 interface Notification {
   message: string;
@@ -25,6 +26,7 @@ interface UserFiles {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +78,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     init();
+  }, []);
+
+  useEffect(() => {
+    const loadSession = async () => {
+      // Optional: retrieve saved session tokens
+      const stored = localStorage.getItem("sb-session");
+      if (stored) {
+        const { access_token, refresh_token } = JSON.parse(stored);
+        await supabase.auth.setSession({ access_token, refresh_token });
+      }
+
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
+      setLoading(false);
+
+      // Listen for session changes
+      const { data: listener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session) {
+          localStorage.setItem(
+            "sb-session",
+            JSON.stringify({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token,
+            })
+          );
+        } else {
+          localStorage.removeItem("sb-session");
+        }
+      });
+
+      return () => listener.subscription.unsubscribe();
+    };
+
+    loadSession();
   }, []);
 
   async function getProfile() {
@@ -261,6 +300,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signup,
         login,
         logout,
+        supabase,
         notification,
         setNotification,
       }}
