@@ -36,10 +36,12 @@ const SignUp = () => {
   const path = isAdmin ? "/admin-dashboard" : "/dashboard";
 
   useEffect(() => {
-    if (loading === false && isAuthenticated) {
+    if (loading == false && isAuthenticated) {
       navigate(`${path}`, { state: { userFiles } });
     }
+  }, [loading, navigate, path]); // did not include isAuthenticated because it is dependent on loading state
 
+  useEffect(() => {
     if (location.pathname.includes("login")) {
       setAuthType("log-in");
       setAuthHeader("Log In");
@@ -58,7 +60,15 @@ const SignUp = () => {
 
       return () => clearTimeout(timeout);
     }
-  }, [loading, notification]); // did not include isAuthenticated because it is dependent on loading state
+  }, []);
+
+  useEffect(() => {
+    if (authNotification && authNotification.type !== "info") {
+      setNotification({ message: authNotification.message });
+    } else {
+      setNotification(null);
+    }
+  }, [authNotification]);
 
   const signupForm = useRef<HTMLFormElement>(null);
   const loginForm = useRef<HTMLFormElement>(null);
@@ -127,6 +137,7 @@ const SignUp = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setAuthType("sign-up");
     const form = signupForm.current;
     if (!form) {
       setNotification({ message: "Form is not available." });
@@ -152,10 +163,6 @@ const SignUp = () => {
 
       setInitializedAuth(true);
 
-      if (authNotification && authNotification.type != "info") {
-        setNotification({ message: authNotification.message });
-      }
-
       await signup(firstName, lastName, email, password);
       setNotification(null);
       setIsAuthenticated(true);
@@ -171,6 +178,7 @@ const SignUp = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setAuthType("log-in");
     try {
       const form = loginForm.current;
       if (!form) {
@@ -184,10 +192,6 @@ const SignUp = () => {
       const password = formData.get("password") as string;
 
       setInitializedAuth(true);
-
-      if (authNotification && authNotification.type != "info") {
-        setNotification({ message: authNotification.message });
-      }
 
       await login(email, password);
 
@@ -256,12 +260,6 @@ const SignUp = () => {
               <div className="auth-notification">{passwordErr}</div>
             )}
             {notification && renderNotification(notification)}
-            {authNotification?.type == "info" && (
-              <Alert variant="default" className="mb-4">
-                <AlertTitle>{authNotification.message}</AlertTitle>
-                <AlertDescription>{authNotification.description}</AlertDescription>
-              </Alert>
-            )}
             <button type="submit" className="primary-btn">
               {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
             </button>
@@ -276,14 +274,8 @@ const SignUp = () => {
               required
             />
             {notification && renderNotification(notification)}
-            {authNotification?.type == "info" && (
-              <Alert variant="default" className="mb-4">
-                <AlertTitle>{authNotification.message}</AlertTitle>
-                <AlertDescription>{authNotification.description}</AlertDescription>
-              </Alert>
-            )}
             <div className="button-div">
-              <button className="forgot-password">Forgot Password?</button>
+              <Link to={"/auth/verify-email"} className="forgot-password">Forgot Password?</Link>
               <button type="submit" className="primary-btn">
                 {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
               </button>
