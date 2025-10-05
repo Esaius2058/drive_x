@@ -18,6 +18,7 @@ export type AuthContextType = {
     email: string,
     password: string
   ) => Promise<void>;
+  supabase: any;
   isAdmin: boolean;
   loading: boolean;
   error: Error | null;
