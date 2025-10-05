@@ -2,9 +2,11 @@ import App from "./App";
 import Landing from "./components/Landing";
 import AuthWrapper from "./components/AuthWrapper";
 import SignUp from "./components/SignUp";
+import Update from "./components/Update";
 import { Dashboard } from "./components/Dashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import { ErrorPage } from "./components/404";
+import VerifyEmail from "./components/VerifyEmail";
 import { ErrorBoundaryWrapper } from "./components/ErrorBoundary";
 
 const MainRoutes = () => {
@@ -29,6 +31,14 @@ const MainRoutes = () => {
               path: "login",
               element: <SignUp />,
             },
+            {
+              path: "verify-email",
+              element: <VerifyEmail />,
+            },
+            {
+              path: "reset-password",
+              element: <Update />,
+            }
           ],
         },
         {
