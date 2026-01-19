@@ -126,17 +126,6 @@ export const createUser = async (
         },
       ]);
 
-    //Create a new root folder
-    /*const { data: folder, error: folderError } = await supabase
-      .from("Folders")
-      .insert([{ name: "Parent Folder", user_id: user.id, parent_id: null }])
-      .select(); // <-lets TS infer the shape of 'data'
-
-    if (folderError || !folder || folder.length === 0) {
-      console.error("Failed to create folder:", folderError);
-      throw folderError;
-    }*/
-
     if (dbError) {
       console.error("Database error:", dbError);
       throw dbError;
@@ -269,9 +258,7 @@ export const updateEmail = async (req: Request, res: Response) => {
 };
 
 export const updatePassword = async (req: Request, res: Response) => {
-  const user = req.user;
-  const email = user?.email;
-  const { oldpassword, newpassword } = req.body;
+  const { email, oldpassword, newpassword } = req.body;
 
   try {
     if (!oldpassword) {
