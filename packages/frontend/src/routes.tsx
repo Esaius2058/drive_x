@@ -7,7 +7,6 @@ import { Dashboard } from "./components/Dashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import { ErrorPage } from "./components/404";
 import VerifyEmail from "./components/VerifyEmail";
-import { ErrorBoundaryWrapper } from "./components/ErrorBoundary";
 
 const MainRoutes = () => {
   const routes = [

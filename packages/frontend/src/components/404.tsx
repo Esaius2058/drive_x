@@ -1,16 +1,26 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const ErrorPage = () => {
+  const [isloggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const handleRedirect = () => {
-    navigate("/dashboard");
+    const token =  localStorage.getItem("token");
+    if (token != null){
+      navigate("/dashboard");
+      setIsLoggedIn(true);
+    } else {
+      navigate("/");
+    }
+    return;
   };
+
   return (
     <div className="error-page">
       <h1>404</h1>
       <h2>The page you're looking for doesn't exist.</h2>
       <button className="primary-btn" onClick={() => handleRedirect()}>
-        Back to Dashboard
+        {isloggedIn ? "Back to Dashboard" : "Back to Home Page"}
       </button>
     </div>
   );

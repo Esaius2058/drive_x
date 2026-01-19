@@ -335,6 +335,9 @@
   width: 25px;
   height: 25px;
 }
+#auth-form-alt {
+  height: 320px;
+}
 .rename-form {
   position: absolute;
   background-color: var(--pearl);
@@ -368,8 +371,13 @@
 .auth-notification {
   width: 70%;
   border-radius: 5px;
-  color: rgb(229, 62, 62);
   text-align: center;
+}
+.auth-notification-red {
+  color: rgb(229, 62, 62);
+}
+.auth-notification-green {
+  color: rgb(34, 153, 84);
 }
 
 /*Loading Spinner*/
@@ -746,8 +754,12 @@ div span {
 .error-page {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 60px;
   background-color: var(--light-gray);
+}
+.error-page-p{
+  text-align: center;
 }
 .error-page h1 {
   font-size: 200px;

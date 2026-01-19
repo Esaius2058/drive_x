@@ -174,6 +174,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // fetch and set user profile
       await getProfile();
     } catch (error: any) {
+      if (error.status === 503 || error.message?.includes("fetch failed")) {
+        setLoading(false);
+        throw error;
+      }
+
       if (error.status == 422) {
         setNotification({
           message: "User already exists. Login instead.",
@@ -224,6 +229,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await getProfile();
     } catch (error: any) {
       setLoading(false);
+
+      if (error.status === 503 || error.message?.includes("fetch failed")) {
+         // Clear local state just in case, then throw
+         setUser(null);
+         setToken(null);
+         throw error;
+      }
+
       if (error.status == 400) {
         setNotification({
           message: "Invalid Email or Password. Try again.",
@@ -235,8 +248,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           type: "warning"
         });
       }
+
       console.error(error);
-      // clear state on failure to avoid inconsistencies
       setUser(null);
       setToken(null);
       localStorage.removeItem("token");

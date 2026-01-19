@@ -3,13 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LoadingSpinner } from "./LoadingScreen";
-import { Alert, AlertDescription, AlertTitle } from "./Alert";
+// import { Alert, AlertDescription, AlertTitle } from "./Alert"; // Unused in your code, but kept if you need it
+import DownError from "./DownError"; // Ensure this path is correct
 
 const SignUp = () => {
   interface Notification {
     message: string;
     type?: "success" | "error" | "warning" | "info";
-    description?: string; // milliseconds
+    description?: string;
   }
 
   const [authType, setAuthType] = useState("sign-up");
@@ -21,6 +22,7 @@ const SignUp = () => {
   const [notification, setNotification] = useState<Notification | null>(null);
   const [emailErr, setEmailErr] = useState<string>("");
   const [passwordErr, setPasswordErr] = useState<string>("");
+  const [isDbDown, setIsDbDown] = useState(false);
 
   const {
     loading,
@@ -36,10 +38,10 @@ const SignUp = () => {
   const path = isAdmin ? "/admin-dashboard" : "/dashboard";
 
   useEffect(() => {
-    if (loading == false && isAuthenticated) {
+    if (loading === false && isAuthenticated) {
       navigate(`${path}`, { state: { userFiles } });
     }
-  }, [loading, navigate, path]); // did not include isAuthenticated because it is dependent on loading state
+  }, [loading, navigate, path, isAuthenticated]);
 
   useEffect(() => {
     if (location.pathname.includes("login")) {
@@ -53,11 +55,12 @@ const SignUp = () => {
       setAuthIntro("Already");
       setAuthCTA("Log In");
     }
+    
+    // Clear notifications after 10s
     if (notification || authNotification) {
       const timeout = setTimeout(() => {
         setNotification(null);
       }, 10000);
-
       return () => clearTimeout(timeout);
     }
   }, []);
@@ -72,7 +75,10 @@ const SignUp = () => {
 
   const signupForm = useRef<HTMLFormElement>(null);
   const loginForm = useRef<HTMLFormElement>(null);
+
   const handleAuthTypeChange = () => {
+    // Reset state when switching modes
+    setIsDbDown(false); 
     if (authType === "sign-up") {
       setAuthType("log-in");
       setAuthHeader("Log In");
@@ -88,12 +94,10 @@ const SignUp = () => {
 
   const validateEmail = (email: string) => {
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
     if (!regex.test(email)) {
       setEmailErr("Please enter a valid email address.");
       return false;
     }
-
     setEmailErr("");
     return true;
   };
@@ -109,22 +113,18 @@ const SignUp = () => {
       setPasswordErr("Password must at least 8 characters long.");
       return false;
     }
-
     if (!hasUpperCase) {
       setPasswordErr("Password must contain at least one uppercase letter.");
       return false;
     }
-
     if (!hasLowerCase) {
       setPasswordErr("Password must contain at least one lowercase letter.");
       return false;
     }
-
     if (!hasNumber) {
       setPasswordErr("Password must contain at least one number.");
       return false;
     }
-
     if (!hasSpecialChar) {
       setPasswordErr("Password must contain at least one special character.");
       return false;
@@ -136,6 +136,7 @@ const SignUp = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsDbDown(false); // Reset before attempt
 
     setAuthType("sign-up");
     const form = signupForm.current;
@@ -146,7 +147,6 @@ const SignUp = () => {
 
     try {
       const formData = new FormData(form);
-
       const firstName = formData.get("firstname") as string;
       const lastName = formData.get("lastname") as string;
       const email = formData.get("email") as string;
@@ -158,16 +158,21 @@ const SignUp = () => {
       }
 
       if (!validateEmail(email)) return;
-
       if (!validatePassword(password)) return;
 
       setInitializedAuth(true);
 
       await signup(firstName, lastName, email, password);
+      
       setNotification(null);
       setIsAuthenticated(true);
     } catch (error: any) {
-      console.error("Login failed:", error);
+      console.error("Signup failed:", error);
+
+      // 3. Check for 503 Service Unavailable
+      if (error.status === 503 || error.message?.includes("Database service unavailable")) {
+        setIsDbDown(true);
+      }
     } finally {
       setTimeout(() => {
         setInitializedAuth(false);
@@ -177,6 +182,7 @@ const SignUp = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsDbDown(false); // Reset before attempt
 
     setAuthType("log-in");
     try {
@@ -187,7 +193,6 @@ const SignUp = () => {
       }
 
       const formData = new FormData(form);
-
       const email = formData.get("email") as string;
       const password = formData.get("password") as string;
 
@@ -197,8 +202,13 @@ const SignUp = () => {
 
       setNotification(null);
       setIsAuthenticated(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+
+      // 3. Check for 503 Service Unavailable
+      if (error.status === 503 || error.message?.includes("Database service unavailable")) {
+        setIsDbDown(true);
+      }
     } finally {
       setTimeout(() => {
         setInitializedAuth(false);
@@ -214,6 +224,10 @@ const SignUp = () => {
       </div>
     );
   };
+
+  if (isDbDown) {
+    return <DownError isLoggedIn={false} />;
+  }
 
   return (
     <div className="auth-page">

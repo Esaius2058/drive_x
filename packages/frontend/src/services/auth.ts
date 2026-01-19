@@ -5,8 +5,6 @@ const api =
 
 export async function loginUser(email: string, password: string) {
   try {
-    console.log("API on login: ", api);
-    console.log("Mode: ", import.meta.env.MODE);
     const res = await fetch(`${api}/log-in`, {
       method: "POST",
       headers: {
@@ -17,13 +15,17 @@ export async function loginUser(email: string, password: string) {
 
     const contentType = res.headers.get("content-type");
     const isJson = contentType?.includes("application/json");
-    if (!res.ok){
+
+    if (!res.ok) {
+      // 1. Get the error body
       const errorBody = isJson ? await res.json() : { message: await res.text() };
-      const error = new Error(errorBody || "Unknown error");
-      (error as any).message = errorBody.message;
+      // 2. Create the error object
+      const error = new Error(errorBody.message || "Unknown error");
+      // 3. IMPORTANT: Attach the HTTP status code directly from the response
+      (error as any).status = res.status;      
+      // 4. Attach other metadata if available
       (error as any).type = errorBody.type;
-      (error as any).name = errorBody.error.name;
-      (error as any).status = errorBody.error.status;
+      (error as any).details = errorBody.error; 
 
       throw error;
     }
@@ -35,6 +37,16 @@ export async function loginUser(email: string, password: string) {
 
     return data.user;
   } catch (error: any) {
+    const isNetworkError = 
+      error.name === "TypeError" && 
+      (error.message.includes("NetworkError") || error.message.includes("Failed to fetch"));
+
+    if (isNetworkError) {
+      // Manually attach status 503 so the UI knows the DB/Server is down
+      error.status = 503;
+      error.message = "Database service unavailable";
+    }
+
     throw error;
   }
 }
@@ -57,13 +69,17 @@ export async function signUpUser(
     const contentType = res.headers.get("content-type");
     const isJson = contentType?.includes("application/json");
 
-    if (!res.ok){
-      const errorBody = isJson ? await res.json() : { message: await res.text() };
-      const error = new Error(errorBody || "Unknown error");
-      (error as any).message = errorBody.message;
+    if (!res.ok) {
+      // 1. Get the error body
+      const errorBody = isJson ? await res.json() : { message: await res.text() };   
+      // 2. Create the error object
+      const error = new Error(errorBody.message || "Unknown error");
+      // 3. IMPORTANT: Attach the HTTP status code directly from the response
+      (error as any).status = res.status;      
+      // 4. Attach other metadata if available
       (error as any).type = errorBody.type;
-      (error as any).name = errorBody.error.name;
-      (error as any).status = errorBody.error.status;
+      (error as any).details = errorBody.error; 
+
       throw error;
     }
     
@@ -76,6 +92,16 @@ export async function signUpUser(
     let session = data.session;
     return {user, session};
   } catch (error: any) {
+    const isNetworkError = 
+      error.name === "TypeError" && 
+      (error.message.includes("NetworkError") || error.message.includes("Failed to fetch"));
+
+    if (isNetworkError) {
+      // Manually attach status 503 so the UI knows the DB/Server is down
+      error.status = 503;
+      error.message = "Database service unavailable";
+    }
+
     throw error;
   }
 }
