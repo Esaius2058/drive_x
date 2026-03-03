@@ -3,8 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LoadingSpinner } from "./LoadingScreen";
-// import { Alert, AlertDescription, AlertTitle } from "./Alert"; // Unused in your code, but kept if you need it
-import DownError from "./DownError"; // Ensure this path is correct
+import DownError from "./DownError";
 
 const SignUp = () => {
   interface Notification {
@@ -55,15 +54,14 @@ const SignUp = () => {
       setAuthIntro("Already");
       setAuthCTA("Log In");
     }
-    
-    // Clear notifications after 10s
+
     if (notification || authNotification) {
       const timeout = setTimeout(() => {
         setNotification(null);
       }, 10000);
       return () => clearTimeout(timeout);
     }
-  }, []);
+  }, [notification, authNotification]);
 
   useEffect(() => {
     if (authNotification && authNotification.type !== "info") {
@@ -77,8 +75,8 @@ const SignUp = () => {
   const loginForm = useRef<HTMLFormElement>(null);
 
   const handleAuthTypeChange = () => {
-    // Reset state when switching modes
-    setIsDbDown(false); 
+    setIsDbDown(false);
+    setNotification(null);
     if (authType === "sign-up") {
       setAuthType("log-in");
       setAuthHeader("Log In");
@@ -134,9 +132,25 @@ const SignUp = () => {
     return true;
   };
 
+  // Helper for Maintenance Alert
+  const triggerMaintenanceAlert = () => {
+    setNotification({
+      message: "System Maintenance",
+      description: "I'm currently transferring the server to AWS Cloud. Access is temporarily disabled.",
+      type: "warning",
+    });
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsDbDown(false); // Reset before attempt
+
+    // --- MAINTENANCE MODE: INTERCEPT ---
+    triggerMaintenanceAlert();
+    return;
+    
+    // --- ORIGINAL LOGIC BELOW (Uncomment to restore) ---
+    /*
+    setIsDbDown(false); 
 
     setAuthType("sign-up");
     const form = signupForm.current;
@@ -169,7 +183,7 @@ const SignUp = () => {
     } catch (error: any) {
       console.error("Signup failed:", error);
 
-      // 3. Check for 503 Service Unavailable
+      // Check for 503 Service Unavailable
       if (error.status === 503 || error.message?.includes("Database service unavailable")) {
         setIsDbDown(true);
       }
@@ -178,11 +192,19 @@ const SignUp = () => {
         setInitializedAuth(false);
       }, 3000);
     }
+    */
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsDbDown(false); // Reset before attempt
+
+    // --- MAINTENANCE MODE: INTERCEPT ---
+    triggerMaintenanceAlert();
+    return;
+
+    // --- ORIGINAL LOGIC BELOW (Uncomment to restore) ---
+    /*
+    setIsDbDown(false); 
 
     setAuthType("log-in");
     try {
@@ -205,7 +227,7 @@ const SignUp = () => {
     } catch (error: any) {
       console.error("Login failed:", error);
 
-      // 3. Check for 503 Service Unavailable
+      // Check for 503 Service Unavailable
       if (error.status === 503 || error.message?.includes("Database service unavailable")) {
         setIsDbDown(true);
       }
@@ -214,13 +236,20 @@ const SignUp = () => {
         setInitializedAuth(false);
       }, 3000);
     }
+    */
   };
 
   const renderNotification = (notification: Notification) => {
+    const alertClass = notification.type === 'warning' ? 'alert-warning' : 'alert-error';
+    
     return (
-      <div className={`auth-notification`}>
-        <p>{notification.message}</p>
-        <p>{notification?.description}</p>
+      <div className={`custom-alert ${alertClass}`}>
+        <div className="alert-content">
+          <h4 className="alert-title">{notification.message}</h4>
+          {notification.description && (
+            <p className="alert-description">{notification.description}</p>
+          )}
+        </div>
       </div>
     );
   };
@@ -231,6 +260,13 @@ const SignUp = () => {
 
   return (
     <div className="auth-page">
+      {/* 1. Notification Moved Here (Outside Form Container) */}
+      {notification && (
+        <div className="page-alert-wrapper">
+          {renderNotification(notification)}
+        </div>
+      )}
+
       <div className="auth-form">
         <div className="auth-div">
           <Link to={"/"} className="cancel-btn">
@@ -248,6 +284,7 @@ const SignUp = () => {
             </Link>
           </p>
         </div>
+
         {authType === "sign-up" ? (
           <form id="signup-form" ref={signupForm} onSubmit={handleSignup}>
             <input
@@ -263,7 +300,7 @@ const SignUp = () => {
               required
             />
             <input name="email" type="email" placeholder="email" required />
-            {emailErr && <div className="auth-notification">{emailErr}</div>}
+            {emailErr && <div className="error-text">{emailErr}</div>}
             <input
               name="password"
               type="password"
@@ -271,9 +308,9 @@ const SignUp = () => {
               required
             />
             {passwordErr && (
-              <div className="auth-notification">{passwordErr}</div>
+              <div className="error-text">{passwordErr}</div>
             )}
-            {notification && renderNotification(notification)}
+            
             <button type="submit" className="primary-btn">
               {loading && initializedAuth ? <LoadingSpinner /> : authHeader}
             </button>
@@ -287,7 +324,7 @@ const SignUp = () => {
               placeholder="password"
               required
             />
-            {notification && renderNotification(notification)}
+            
             <div className="button-div">
               <Link to={"/auth/verify-email"} className="forgot-password">Forgot Password?</Link>
               <button type="submit" className="primary-btn">

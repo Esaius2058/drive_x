@@ -788,3 +788,49 @@ div span {
 .no-section button {
   width: 150px;
 }
+
+/*aws notification component*/
+/* Wrapper to control width when outside the form */
+.page-alert-wrapper {
+  width: 100%;
+  max-width: 400px; /* Matches standard form width */
+  margin: 0 auto 1rem auto; /* Center horizontally and add space below */
+}
+/* Custom Alert Styles */
+.custom-alert {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  display: flex;
+  font-family: inherit;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Added shadow for "floating" effect */
+}
+/* Yellow Warning */
+.custom-alert.alert-warning {
+  background-color: #fffbeb; 
+  border-color: #fcd34d;     
+  color: #92400e;            
+}
+/* Red Error */
+.custom-alert.alert-error {
+  background-color: #fef2f2; 
+  border-color: #fca5a5;     
+  color: #b91c1c;            
+}
+.alert-title {
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+}
+.alert-description {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+.error-text {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  margin-top: -0.5rem;
+}
