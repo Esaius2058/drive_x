@@ -145,11 +145,11 @@ const SignUp = () => {
     e.preventDefault();
 
     // --- MAINTENANCE MODE: INTERCEPT ---
+    /*
     triggerMaintenanceAlert();
     return;
+    */
     
-    // --- ORIGINAL LOGIC BELOW (Uncomment to restore) ---
-    /*
     setIsDbDown(false); 
 
     setAuthType("sign-up");
@@ -192,18 +192,17 @@ const SignUp = () => {
         setInitializedAuth(false);
       }, 3000);
     }
-    */
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // --- MAINTENANCE MODE: INTERCEPT ---
+    /*
     triggerMaintenanceAlert();
     return;
+    */
 
-    // --- ORIGINAL LOGIC BELOW (Uncomment to restore) ---
-    /*
     setIsDbDown(false); 
 
     setAuthType("log-in");
@@ -236,7 +235,6 @@ const SignUp = () => {
         setInitializedAuth(false);
       }, 3000);
     }
-    */
   };
 
   const renderNotification = (notification: Notification) => {
