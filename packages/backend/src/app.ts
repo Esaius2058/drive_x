@@ -12,7 +12,7 @@ app.set("views", path.resolve(__dirname, "../src", "views"));
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? ["http://13.220.4.43", "https://file-uploader-nu.vercel.app"]
+    ? ["https://drive-x.duckdns.org/api", "https://file-uploader-nu.vercel.app"]
     : ["http://localhost:5173", "http://13.220.4.43"];
 
 app.use(
