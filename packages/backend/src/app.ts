@@ -12,8 +12,8 @@ app.set("views", path.resolve(__dirname, "../src", "views"));
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? ["https://drive-x.duckdns.org/api", "https://file-uploader-nu.vercel.app"]
-    : ["http://localhost:5173", "http://13.220.4.43"];
+    ? ["https://idexam.duckdns.org/drive-x/", "https://file-uploader-nu.vercel.app"]
+    : ["http://localhost:5173", "https://idexam.duckdns.org/drive-x/"];
 
 app.use(
   cors({
